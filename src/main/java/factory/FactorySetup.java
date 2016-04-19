@@ -1,18 +1,19 @@
-package factoryXml;
+package factory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+
 public class FactorySetup {
-    public HashMap<String,Object> factory = new HashMap<>();
+    static public HashMap<String,Object> factory = new HashMap<>();
     private final String RESOURCES = "xml/";
 
-    public void init(String clazz) {
+    public void readXml(String clazz) {
         factory.put(clazz,ReadXMLFileSAX.readXML(RESOURCES + clazz));
     }
 
-    public void init() {
+    public void readXml() {
         File file = new File(RESOURCES);
         File [] files = file.listFiles();
         if (files!=null) {
@@ -27,5 +28,8 @@ public class FactorySetup {
         }
     }
 
+    public void init (){
+
+    }
 
 }

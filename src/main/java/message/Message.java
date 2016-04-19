@@ -2,10 +2,10 @@ package message;
 
 import base.PortMessage;
 
-public class PortMessageImpl implements PortMessage {
+public class Message implements PortMessage {
     private String data;
 
-    public PortMessageImpl(String data) {
+    public Message(String data) {
         this.data = data;
     }
 
@@ -21,14 +21,15 @@ public class PortMessageImpl implements PortMessage {
 
     @Override
     public String getData() {
-        if (data == null) return "no data";
         return data;
     }
 
     @Override
     public String toString() {
-        return "PortMessageImpl{" +
+        return "Message{" +
                 "data='" + data + '\'' +
                 '}';
     }
+
+
 }

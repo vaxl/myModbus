@@ -1,4 +1,4 @@
-package factoryXml;
+package factory;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
