@@ -1,5 +1,7 @@
 package base;
 
+import message.Message;
+
 public interface ParseMessage {
-    void execute();
+    void execute(Message message);
 }

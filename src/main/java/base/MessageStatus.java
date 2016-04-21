@@ -1,4 +1,5 @@
 package base;
 
-public interface MessageStatus {
+public enum MessageStatus {
+    OK,NOANSWER,ERR,NOCONNECT,WRONGPACK
 }

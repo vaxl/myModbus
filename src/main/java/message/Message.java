@@ -1,35 +1,79 @@
 package message;
 
-import base.PortMessage;
+import base.MessageStatus;
 
-public class Message implements PortMessage {
-    private String data;
+public class Message  {
+    private byte[] rx;
+    private byte[] tx;
+    private MessageStatus status;
+    private String textRx;
+    private String textTx;
 
-    public Message(String data) {
-        this.data = data;
+    void setTextRx(String textRx) {
+        this.textRx = textRx;
     }
 
-    @Override
-    public void answer() {
-        //TODO
+    void setTextTx(String textTx) {
+        this.textTx = textTx;
     }
 
-    @Override
-    public String toHex() {
-        return null;
+    public Message(byte[] data) {
+        this.rx = data;
     }
 
-    @Override
-    public String getData() {
-        return data;
+    public byte[] getTx() {
+        return tx;
     }
 
-    @Override
-    public String toString() {
-        return "Message{" +
-                "data='" + data + '\'' +
-                '}';
+    void setTx(byte[] tx) {
+        this.tx = tx;
     }
 
+    public MessageStatus getStatus() {
+        return status;
+    }
 
+    public void setStatus(MessageStatus status) {
+        this.status = status;
+    }
+
+    byte[] getRx() {
+        return rx;
+    }
+
+    public String getRxToString() {
+        StringBuilder str = new StringBuilder();
+        for (byte i: rx )
+            str.append(Byte.toUnsignedInt(i)).append(" ");
+        return str.toString();
+    }
+
+    public String getTxToString() {
+        StringBuilder str = new StringBuilder();
+        for (byte i: tx )
+            str.append(Byte.toUnsignedInt(i)).append(" ");
+        return str.toString();
+    }
+
+    public String getTxToHexString() {
+        StringBuilder str = new StringBuilder();
+        for (byte i: tx )
+            str.append(Integer.toHexString(Byte.toUnsignedInt(i))).append(" ");
+        return str.toString();
+    }
+
+    public String getRxToHexString() {
+        StringBuilder str = new StringBuilder();
+        for (byte i: rx )
+            str.append(Integer.toHexString(Byte.toUnsignedInt(i))).append(" ");
+        return str.toString();
+    }
+
+    public String getTextRx() {
+        return textRx;
+    }
+
+    public String getTextTx() {
+        return textTx;
+    }
 }

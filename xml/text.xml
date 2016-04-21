@@ -1,0 +1,19 @@
+<class type='settings.Text'>
+    <PORTOPEN>Порт открыт</PORTOPEN>
+    <PORTCLOSE>Порт закрыт</PORTCLOSE>
+    <CONNECTED>Есть подключение</CONNECTED>
+
+    <ERRPACK>Не тот протокол </ERRPACK>
+    <ERRFUNC>Неподдерживаемая функция </ERRFUNC>
+    <ERRREG>Нет таких регистров в БД </ERRREG>
+
+    <RX>Запрос: </RX>
+    <TX>Ответ: </TX>
+    <REGISTR> регистр = </REGISTR>
+    <ADDRES> номер устройства = </ADDRES>
+    <FUNCTION> функция = </FUNCTION>
+    <NUMBER> кол-во =  </NUMBER>
+    <DATA> данные = </DATA>
+
+
+</class>
