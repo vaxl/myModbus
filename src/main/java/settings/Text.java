@@ -14,5 +14,8 @@ public class Text {
      public String NUMBER = "number";
      public String DATA = "data";
      public String ERRREG = "ERRREG";
+     public String NOCONNECT = "NOCONNECT";
+     public String NOCMD = "NOCMD";
+     public String ENTERLOG = "ENTERLOG";
 
 }

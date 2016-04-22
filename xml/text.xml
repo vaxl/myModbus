@@ -2,13 +2,17 @@
     <PORTOPEN>Порт открыт</PORTOPEN>
     <PORTCLOSE>Порт закрыт</PORTCLOSE>
     <CONNECTED>Есть подключение</CONNECTED>
+    <NOCONNECT>Не удалось создать подключение</NOCONNECT>
+    <NOCMD>Неизвестная комманда</NOCMD>
+
+    <ENTERLOG>Укажите тип лога: </ENTERLOG>
 
     <ERRPACK>Не тот протокол </ERRPACK>
     <ERRFUNC>Неподдерживаемая функция </ERRFUNC>
-    <ERRREG>Нет таких регистров в БД </ERRREG>
+    <ERRREG> нет таких регистров в БД </ERRREG>
 
     <RX>Запрос: </RX>
-    <TX>Ответ: </TX>
+    <TX>Ответ : </TX>
     <REGISTR> регистр = </REGISTR>
     <ADDRES> номер устройства = </ADDRES>
     <FUNCTION> функция = </FUNCTION>

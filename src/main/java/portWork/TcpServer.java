@@ -1,10 +1,12 @@
 package portWork;
 
-import base.LogWork;
+import base.View;
 import base.MessageStatus;
-import base.PortWork;
+import base.Connection;
+import base.Protocol;
 import factory.FactorySetup;
 import message.Message;
+import message.MessageParseExec;
 import settings.Setup;
 import settings.Text;
 
@@ -14,20 +16,21 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class TcpServer implements PortWork{
+public class TcpServer implements Connection {
     private Text text;
     private Setup setup;
     private ServerSocket serverSocket;
-    private LogWork messageWork;
+    private View view;
     private Socket socket;
     private InputStream in;
     private OutputStream out;
     private int i=0;
+    private boolean run;
 
     public TcpServer() {
-        text = (Text) FactorySetup.factory.get("text.xml");
-        setup = (Setup) FactorySetup.factory.get("setup.xml");
-        messageWork = (LogWork) FactorySetup.factory.get("messageWork");
+        text = (Text) FactorySetup.getClazz("text.xml");
+        setup = (Setup) FactorySetup.getClazz("setup.xml");
+        view = (View) FactorySetup.getClazz("View");
     }
 
     @Override
@@ -55,7 +58,6 @@ public class TcpServer implements PortWork{
         } catch (Exception e) { e.printStackTrace(); stop();}
         return null;
     }
-
     @Override
     public void write(Message message) {
         try {
@@ -66,33 +68,44 @@ public class TcpServer implements PortWork{
             stop();
         }
     }
-
     @Override
-    public boolean start() {
+    public boolean init() {
         try{
             serverSocket = new ServerSocket(setup.port);
-            messageWork.print(text.PORTOPEN);
+            view.print(text.PORTOPEN);
             socket = serverSocket.accept();
-            messageWork.print(text.CONNECTED);
+            view.print(text.CONNECTED);
             in = socket.getInputStream();
             out = socket.getOutputStream();
             return true;
         }catch (Exception e) {return false;}
     }
-
     @Override
     public void stop() {
         try {
+            run=false;
             serverSocket.close();
             socket.close();
             in.close();
             out.close();
-            messageWork.print(text.PORTCLOSE);
+            view.print(text.PORTCLOSE);
         } catch (IOException e) {e.printStackTrace();}
     }
     @Override
     public boolean isAlive(){
         return socket.isConnected() & !socket.isClosed();
     }
-
+    @Override
+    public void start() {
+        run=true;
+            while (run) {
+                Message message = read();
+                if(message.getStatus() == MessageStatus.NOCONNECT) break;
+                MessageParseExec.execute(Protocol.valueOf(setup.protocol),message);
+                if (message.getStatus()!= MessageStatus.NOANSWER){
+                    write(message);
+                }
+                view.print(message);
+            }
+    }
 }

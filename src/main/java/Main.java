@@ -1,6 +1,6 @@
-import base.LogWork;
+import base.View;
 import base.MessageStatus;
-import base.PortWork;
+import base.Connection;
 import base.Protocol;
 import factory.FactorySetup;
 import helpers.ReflectionHelper;
@@ -13,27 +13,24 @@ public class Main {
 
     public static void main(String[] args) {
 
-        FactorySetup factorySetup = new FactorySetup();
-        factorySetup.readXml();
-        Text text = (Text) FactorySetup.factory.get("text.xml");
-        Setup setup = (Setup) FactorySetup.factory.get("setup.xml");
-        LogWork messageWork = (LogWork) ReflectionHelper.createInstance(setup.messageWork);
-        FactorySetup.factory.put("messageWork",messageWork);
-        PortWork portWork = (PortWork) ReflectionHelper.createInstance(setup.portWork);
+        Text text = (Text) FactorySetup.getClazz("text.xml");
+        Setup setup = (Setup) FactorySetup.getClazz("setup.xml");
+        View messageWork = (View) ReflectionHelper.createInstance(setup.messageWork);
+        Connection connection = (Connection) ReflectionHelper.createInstance(setup.connection);
 
-        if (portWork.start()) {
+        if (connection.init()) {
             while (true) {
-                if (!portWork.isAlive()) break;
-                Message message = portWork.read();
+                if (!connection.isAlive()) break;
+                Message message = connection.read();
                 if(message.getStatus() == MessageStatus.NOCONNECT) break;
                 MessageParseExec.execute(Protocol.valueOf(setup.protocol),message);
                 if (message.getStatus()!= MessageStatus.NOANSWER){
-                    portWork.write(message);
+                    connection.write(message);
                 }
-                messageWork.print(message.getRxToHexString());
-                //messageWork.print(message.getTextRx());
+                //messageWork.print(message.getRxToHexString());
+                messageWork.print(message.getTextRx());
                 messageWork.print(message.getTextTx());
-                messageWork.print(message.getTxToHexString());
+                //messageWork.print(message.getTxToHexString());
             }
         }
     }

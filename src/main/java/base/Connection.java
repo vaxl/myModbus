@@ -2,10 +2,11 @@ package base;
 
 import message.Message;
 
-public interface PortWork {
+public interface Connection {
     Message read();
     void write(Message message);
-    boolean start();
+    boolean init();
     void stop();
     boolean isAlive();
+    void start();
 }

@@ -1,8 +1,7 @@
 package message;
 
-import base.LogWork;
-import base.MessageStatus;
-import base.ParseMessage;
+import base.*;
+import database.RegistrsHashMap;
 import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
 import settings.*;
@@ -11,9 +10,10 @@ import java.util.Arrays;
 
 import static helpers.LogicHelper.*;
 
-public class ModbusSlaveTcpParser implements ParseMessage {
-    private LogWork messageWork = (LogWork) FactorySetup.factory.get("messageWork");
-    private Text text = (Text) FactorySetup.factory.get("text.xml");
+class ModbusSlaveTcpParser implements ParseMessage {
+    private View messageWork = (View) FactorySetup.getClazz("View");
+    private Text text = (Text) FactorySetup.getClazz("text.xml");
+    private Database db = new RegistrsHashMap(); //TODO
     private StringBuilder strRx;
     private StringBuilder strTx;
     @Override
@@ -38,7 +38,8 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         }
         return true;
     }
-     private byte[] parsePack(byte[] rx){
+
+    private byte[] parsePack(byte[] rx){
         final byte IDHI = 0;
         final byte IDLO = 1;
         final byte HEADHI=2;
@@ -52,12 +53,12 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         final byte NUMHI=10;
         final byte NUMLO=11;
         int dataSize;
+        byte [] data;
 
         int startAdr = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
         if (rx[FUNC]==3 | rx[FUNC]==4) dataSize = num* 2;
             else  dataSize = bitInByte(num);
-        byte [] data = new byte[dataSize];
         byte [] tx = new byte[dataSize + 9];
 
         strRx = new StringBuilder(text.RX)
@@ -76,7 +77,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         tx[ADR] = rx[ADR];
 
         try{
-            data = getData(data);
+            data = db.read(startAdr,num,RegistrsTypes.values()[rx[FUNC]]);
         }catch (NoSuchRegistrs e) {
             strTx = new StringBuilder(text.TX)
                               .append(text.ERRREG);
@@ -103,11 +104,5 @@ public class ModbusSlaveTcpParser implements ParseMessage {
             strTx.append(Byte.toUnsignedInt(data[j])).append(" ");
         }
         return tx;
-    }
-
-    private byte[] getData (byte [] data) throws NoSuchRegistrs{
-        // Arrays.fill(data,(byte)1);
-        throw new NoSuchRegistrs();
-       // return data;
     }
 }

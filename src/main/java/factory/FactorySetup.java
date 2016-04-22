@@ -6,14 +6,14 @@ import java.util.HashMap;
 
 
 public class FactorySetup {
-    static public HashMap<String,Object> factory = new HashMap<>();
-    private final String RESOURCES = "xml/";
+    private static  HashMap<String,Object> factory = new HashMap<>();
+    private static final String RESOURCES = "xml/";
 
-    public void readXml(String clazz) {
-        factory.put(clazz,ReadXMLFileSAX.readXML(RESOURCES + clazz));
+    public static void readXml(String file) {
+        factory.put(file,ReadXMLFileSAX.readXML(RESOURCES + file));
     }
 
-    public void readXml() {
+    public static void readXml() {
         File file = new File(RESOURCES);
         File [] files = file.listFiles();
         if (files!=null) {
@@ -28,8 +28,15 @@ public class FactorySetup {
         }
     }
 
-    public void init (){
-
+    public static void init(){
+        readXml();
     }
 
+    public static void addToFactory(String clazz,Object object){
+        factory.put(clazz,object);
+    }
+
+    public static Object getClazz(String name){
+        return factory.get(name);
+    }
 }

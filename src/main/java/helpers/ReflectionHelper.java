@@ -18,7 +18,6 @@ public class ReflectionHelper {
         try {
             Field field = object.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
-
             if (field.getType().equals(String.class)) {
                 field.set(object, value);
             } else if (field.getType().equals(int.class)) {
