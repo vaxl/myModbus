@@ -1,19 +1,22 @@
 package message;
 
 import base.MessageStatus;
+import factory.FactorySetup;
+import settings.Text;
 
 public class Message  {
+    private Text text = (Text) FactorySetup.getClazz("text.xml");
     private byte[] rx;
     private byte[] tx;
     private MessageStatus status;
     private String textRx;
     private String textTx;
 
-    void setTextRx(String textRx) {
+    void setRxDecode(String textRx) {
         this.textRx = textRx;
     }
 
-    void setTextTx(String textTx) {
+    void setTxDecode(String textTx) {
         this.textTx = textTx;
     }
 
@@ -41,39 +44,54 @@ public class Message  {
         return rx;
     }
 
-    public String getRxToString() {
-        StringBuilder str = new StringBuilder();
+    public String getRxString() {
+        StringBuilder str = new StringBuilder(text.RX);
         for (byte i: rx )
             str.append(Byte.toUnsignedInt(i)).append(" ");
         return str.toString();
     }
 
-    public String getTxToString() {
-        StringBuilder str = new StringBuilder();
+    public String getTxString() {
+        StringBuilder str = new StringBuilder(text.TX);
         for (byte i: tx )
             str.append(Byte.toUnsignedInt(i)).append(" ");
         return str.toString();
     }
 
-    public String getTxToHexString() {
-        StringBuilder str = new StringBuilder();
+    public String getTxHexString() {
+        StringBuilder str = new StringBuilder(text.TX);
         for (byte i: tx )
             str.append(Integer.toHexString(Byte.toUnsignedInt(i))).append(" ");
         return str.toString();
     }
 
-    public String getRxToHexString() {
-        StringBuilder str = new StringBuilder();
+    public String getRxHexString() {
+        StringBuilder str = new StringBuilder(text.RX);
         for (byte i: rx )
             str.append(Integer.toHexString(Byte.toUnsignedInt(i))).append(" ");
         return str.toString();
     }
 
-    public String getTextRx() {
+    public String getRxDecode() {
         return textRx;
     }
 
-    public String getTextTx() {
+    public String getTxDecode() {
         return textTx;
+    }
+
+    public String getRxText() {
+        StringBuilder str = new StringBuilder(text.RX);
+        for (byte i: rx )
+            str.append(Character.valueOf((char)i)).append(" ");
+        return str.toString();
+    }
+
+    public String getTxText() {
+        StringBuilder str = new StringBuilder(text.TX);
+        if(tx!=null)
+            for (byte i : tx)
+                str.append(Character.valueOf((char) i)).append(" ");
+        return str.toString();
     }
 }

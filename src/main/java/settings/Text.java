@@ -17,5 +17,20 @@ public class Text {
      public String NOCONNECT = "NOCONNECT";
      public String NOCMD = "NOCMD";
      public String ENTERLOG = "ENTERLOG";
+     public String CONNECTIONLOST = "CONNECTIONLOST";
+     public String ENTERPROTOCOL = "ENTERPROTOCOL";
+     public String ENTERCONNECTION = "ENTERCONNECTION";
+     public String GUINAME = "GUINAME";
+     public String GUICONNECT = "GUICONNECT";
+     public String GUISTART = "GUISTART";
+     public String GUISTOP = "GUISTOP";
+     public String GUILOGGER = "GUILOGGER";
+     public String GUIPROTOCOL = "GUIPROTOCOL";
+     public String GUICONNECTION = "GUICONNECTION";
+     public String GUICLEAR = "GUICLEAR";
+     public String GUISEND = "GUISEND";
+     public String CMDACKNOL = "CMDACKNOL";
+     public String ERRDB = "ERRDB";
+     public String GUIDB = "GUIDB";
 
 }

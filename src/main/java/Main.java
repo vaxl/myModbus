@@ -27,10 +27,10 @@ public class Main {
                 if (message.getStatus()!= MessageStatus.NOANSWER){
                     connection.write(message);
                 }
-                //messageWork.print(message.getRxToHexString());
-                messageWork.print(message.getTextRx());
-                messageWork.print(message.getTextTx());
-                //messageWork.print(message.getTxToHexString());
+                //messageWork.print(message.getRxHexString());
+                messageWork.print(message.getRxDecode());
+                messageWork.print(message.getTxDecode());
+                //messageWork.print(message.getTxHexString());
             }
         }
     }

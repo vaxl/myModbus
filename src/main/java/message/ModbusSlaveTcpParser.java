@@ -7,32 +7,42 @@ import factory.FactorySetup;
 import settings.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static helpers.LogicHelper.*;
+import static helpers.LogicHelper.twoByte2Int;
 
-class ModbusSlaveTcpParser implements ParseMessage {
+public class ModbusSlaveTcpParser implements ParseMessage {
     private View messageWork = (View) FactorySetup.getClazz("View");
     private Text text = (Text) FactorySetup.getClazz("text.xml");
-    private Database db = new RegistrsHashMap(); //TODO
+    private Database db = (Database) FactorySetup.getClazz("Database");
+    private Map<String, Message> hash = db.getCach();
     private StringBuilder strRx;
     private StringBuilder strTx;
+    private MessageStatus status;
     @Override
     public void execute(Message message) {
-
-        if (isRightPack(message.getRx())) {
-            message.setTx(parsePack(message.getRx()));
-            message.setTextRx(strRx.toString());
-            message.setTextTx(strTx.toString());
-            message.setStatus(MessageStatus.OK);
+        if (db==null) db = new RegistrsHashMap();
+        byte[] rx = message.getRx();
+        if (isRightPack(rx)) {
+            if (!fromHash(message)) {
+                message.setTx(parsePack(rx));
+                message.setRxDecode(strRx.toString());
+                message.setTxDecode(strTx.toString());
+                message.setStatus(status);
+                toHash(message);
+            }
         }else message.setStatus(MessageStatus.NOANSWER);
     }
 
+
     private boolean isRightPack(byte[] rx){
-        if (rx.length!=12){
+        if (!(rx.length==12 )){
             messageWork.print(text.ERRPACK);
             return false;
         }
-        if (rx[7]>4 | rx[7]<1){
+        if (rx[7]>6 | rx[7]<1){
             messageWork.print(text.ERRFUNC);
             return false;
         }
@@ -58,6 +68,7 @@ class ModbusSlaveTcpParser implements ParseMessage {
         int startAdr = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
         if (rx[FUNC]==3 | rx[FUNC]==4) dataSize = num* 2;
+        else if (rx[FUNC]==5 | rx[FUNC]==6) dataSize=rx.length-9;
             else  dataSize = bitInByte(num);
         byte [] tx = new byte[dataSize + 9];
 
@@ -77,6 +88,13 @@ class ModbusSlaveTcpParser implements ParseMessage {
         tx[ADR] = rx[ADR];
 
         try{
+            if (rx[FUNC]==5 | rx[FUNC]==6) {
+                db.update(startAdr,1,RegistrsTypes.values()[rx[FUNC]],num);
+                db.clearCach();
+                strTx = new StringBuilder(text.TX)
+                        .append(text.CMDACKNOL);
+                return rx;
+            }else
             data = db.read(startAdr,num,RegistrsTypes.values()[rx[FUNC]]);
         }catch (NoSuchRegistrs e) {
             strTx = new StringBuilder(text.TX)
@@ -85,6 +103,7 @@ class ModbusSlaveTcpParser implements ParseMessage {
             tx[LENLO] = 3;
             tx[FUNC] = (byte) (rx[FUNC] | 128);
             tx[8] = 2 ;
+            status = MessageStatus.ERR;
             return Arrays.copyOf(tx,9);
         }
 
@@ -92,7 +111,7 @@ class ModbusSlaveTcpParser implements ParseMessage {
         tx[LENLO] = int2ByteLo(3+dataSize);
         tx[FUNC] = rx[FUNC];
         tx[8] =(byte) dataSize;
-
+        status = MessageStatus.OK;
         strTx = new StringBuilder(text.TX)
                 .append(text.ADDRES)
                 .append(tx[ADR])
@@ -104,5 +123,34 @@ class ModbusSlaveTcpParser implements ParseMessage {
             strTx.append(Byte.toUnsignedInt(data[j])).append(" ");
         }
         return tx;
+    }
+
+    private boolean fromHash(Message message){
+        if (message.getRx()[7]>4) return false;
+        String hashKey = eatStringSpace(message.getRxString(),4);
+        if (hash.containsKey(hashKey)) {
+            Message mesHash = hash.get(hashKey);
+            byte[] tx = mesHash.getTx();
+            tx[0] = message.getRx()[0];
+            tx[1] = message.getRx()[1];
+            message.setRxDecode(mesHash.getRxDecode());
+            message.setTxDecode(mesHash.getTxDecode());
+            message.setTx(tx);
+            message.setStatus(mesHash.getStatus());
+            return true;
+        }
+        return false;
+    }
+
+    private void toHash(Message message){
+        String hashKey = eatStringSpace(message.getRxString(),4);
+        hash.put(hashKey,message);
+    }
+
+    public String eatStringSpace(String text,int number){
+        StringBuilder str = new StringBuilder(text.trim());
+        for (int i = 0; i < number; i++)
+            str.delete(0,str.indexOf(" ")+1);
+        return str.toString();
     }
 }

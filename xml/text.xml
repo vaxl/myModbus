@@ -4,20 +4,37 @@
     <CONNECTED>Есть подключение</CONNECTED>
     <NOCONNECT>Не удалось создать подключение</NOCONNECT>
     <NOCMD>Неизвестная комманда</NOCMD>
+    <CONNECTIONLOST>Связь потеряна</CONNECTIONLOST>
 
     <ENTERLOG>Укажите тип лога: </ENTERLOG>
+    <ENTERPROTOCOL>Укажите тип протокола: </ENTERPROTOCOL>
+    <ENTERCONNECTION>Укажите тип соединения: </ENTERCONNECTION>
 
     <ERRPACK>Не тот протокол </ERRPACK>
     <ERRFUNC>Неподдерживаемая функция </ERRFUNC>
     <ERRREG> нет таких регистров в БД </ERRREG>
+    <ERRDB>Нет базы данных</ERRDB>
+
 
     <RX>Запрос: </RX>
-    <TX>Ответ : </TX>
+    <TX>Ответ-> </TX>
     <REGISTR> регистр = </REGISTR>
     <ADDRES> номер устройства = </ADDRES>
     <FUNCTION> функция = </FUNCTION>
     <NUMBER> кол-во =  </NUMBER>
     <DATA> данные = </DATA>
+    <CMDACKNOL> команда подтвежденна</CMDACKNOL>
+
+    <GUINAME>MyModbus</GUINAME>
+    <GUICONNECT>Connect</GUICONNECT>
+    <GUISTART>Start</GUISTART>
+    <GUISTOP>Stop</GUISTOP>
+    <GUILOGGER>Logger</GUILOGGER>
+    <GUIPROTOCOL>Protocol</GUIPROTOCOL>
+    <GUICONNECTION>Connection</GUICONNECTION>
+    <GUICLEAR>Clear</GUICLEAR>
+    <GUISEND>Send</GUISEND>
+    <GUIDB>DB</GUIDB>
 
 
 </class>

@@ -6,10 +6,12 @@ import factory.FactorySetup;
 import helpers.LogicHelper;
 import message.Message;
 import message.MessageParseExec;
+import message.ModbusSlaveTcpParser;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class testsHelpers {
@@ -22,15 +24,30 @@ public class testsHelpers {
     }
 
     @Test
+    public void testEatString(){
+        ModbusSlaveTcpParser mod = new ModbusSlaveTcpParser();
+        String in = "1 2 3 4 5 6 7 8";
+        String out = "4 5 6 7 8";
+        String res = mod.eatStringSpace(in,3);
+        assertTrue(res.equals(out));
+    }
+
+    @Test
     public void testModbusSlaveTcpParser(){
         byte [] before = {1,58,0,0,0,6,1,1,0,100,0,10};
+        byte [] before2 = {111,111,0,0,0,6,1,1,0,100,0,10};
         byte [] res =    {1,58,0,0,0,5,1,1,2,-86,2};
+        byte [] res2 =    {111,111,0,0,0,5,1,1,2,-86,2};
 
         FactorySetup factorySetup = new FactorySetup();
         factorySetup.readXml();
         Message message = new Message(before);
-        MessageParseExec.execute(Protocol.MODBUSLAVETCP,message);
+        MessageParseExec.execute(Protocol.ModbusSlaveTcp,message);
         assertArrayEquals(res,message.getTx());
+        message = new Message(before2);
+        MessageParseExec.execute(Protocol.ModbusSlaveTcp,message);
+        assertArrayEquals(res2,message.getTx());
+
     }
 
     @Test(expected = NoSuchRegistrs.class)

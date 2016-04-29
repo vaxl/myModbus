@@ -1,7 +1,9 @@
 package model;
 
 import base.Connection;
+import base.Database;
 import base.View;
+import database.RegistrsHashMap;
 import factory.FactorySetup;
 import helpers.ReflectionHelper;
 import settings.Setup;
@@ -11,16 +13,21 @@ public class Model {
     private Setup setup;
     private View view;
     private Text text;
+    private Connection connection;
+    private final String DIRCON = "portWork.";
+
+    public Model() {
+        FactorySetup.readXml();
+    }
 
     public void start(){
-        Connection connection = (Connection) ReflectionHelper.createInstance(setup.connection);
+        connection = (Connection) ReflectionHelper.createInstance(DIRCON + setup.connection);
         if (connection!=null) {
-            if (connection.init()) connection.start();
+                new Thread(connection,"Connection").start();
         }else view.print(text.NOCONNECT);
     }
 
     public void init(){
-        FactorySetup.readXml();
         setup = (Setup) FactorySetup.getClazz("setup.xml");
         view = (View) FactorySetup.getClazz("View");
         text = (Text) FactorySetup.getClazz("text.xml");
@@ -31,4 +38,23 @@ public class Model {
         setup = (Setup) FactorySetup.getClazz("setup.xml");
     }
 
+    public void write(byte[] message) {
+        if (connection.isAlive())
+            connection.write(message);
+    }
+
+    public void initDatabase(){
+        FactorySetup.addToFactory("Database",new RegistrsHashMap());
+    }
+
+
+
+    public void stop(){
+        if (connection!=null) connection.stop();
+    }
+
+    public void clearCach() {
+        Database db = (Database) FactorySetup.getClazz("Database");
+        db.clearCach();
+    }
 }

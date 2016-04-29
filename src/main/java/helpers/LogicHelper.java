@@ -16,4 +16,20 @@ public final class LogicHelper {
         if (a % 8 == 0) return a/8;
         return a/8+1;
     }
+    public static byte[] strByteToByte(String text){
+        String [] data = text.split(" ");
+        byte[] res = new byte[data.length];
+        for (int i = 0; i < data.length; i++) {
+            res[i] =  Byte.valueOf(data[i]);
+        }
+        return  res;
+    }
+    public static byte[] textToByte(String text){
+        char[] temp = text.toCharArray();
+        byte[] res = new byte[temp.length];
+        for (int i = 0; i < temp.length; i++) {
+            res[i] = int2ByteLo(temp[i]);
+        }
+        return  res;
+    }
 }

@@ -7,14 +7,16 @@ import java.util.Map;
 
 public class MessageParseExec {
     private static Map<Protocol, ParseMessage> commandMap;
+    private final static String DIR = "message.";
 
     static {
         commandMap = new HashMap<>();
-        commandMap.put(Protocol.NONE, new NoneParser());
-        commandMap.put(Protocol.MODBUSLAVETCP, new ModbusSlaveTcpParser());
+        for (Protocol p : Protocol.values())
+                commandMap.put(p, (ParseMessage) helpers.ReflectionHelper.createInstance(DIR + p.name() + "Parser"));
     }
 
     private MessageParseExec() {}
+
 
     public static  void execute(Protocol operation, Message message) {
         commandMap.get(operation).execute(message);
