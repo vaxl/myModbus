@@ -32,5 +32,8 @@ public class Text {
      public String CMDACKNOL = "CMDACKNOL";
      public String ERRDB = "ERRDB";
      public String GUIDB = "GUIDB";
+     public String ERRCRC = "ERRCRC";
+     public String CRC = "CRC";
+     public String ERRID = "ERRID";
 
 }

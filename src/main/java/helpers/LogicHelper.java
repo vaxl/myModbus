@@ -32,4 +32,17 @@ public final class LogicHelper {
         }
         return  res;
     }
+    public static int crc16(byte[] arr){
+        int sum=0xffff;
+        for (byte anArr : arr) {
+            sum = (sum ^ (anArr & 0xff));
+            for (int j = 0; j < 8; j++) {
+                if ((sum & 0x1) == 1) {
+                    sum >>>= 1;
+                    sum = (sum ^ 0xA001);
+                } else sum >>>= 1;
+            }
+        }
+        return sum;
+    }
 }

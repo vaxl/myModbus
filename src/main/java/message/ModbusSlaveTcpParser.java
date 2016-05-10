@@ -17,7 +17,6 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     private View messageWork = (View) FactorySetup.getClazz("View");
     private Text text = (Text) FactorySetup.getClazz("text.xml");
     private Database db = (Database) FactorySetup.getClazz("Database");
-    private Map<String, Message> hash = db.getCach();
     private StringBuilder strRx;
     private StringBuilder strTx;
     private MessageStatus status;
@@ -128,8 +127,8 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     private boolean fromHash(Message message){
         if (message.getRx()[7]>4) return false;
         String hashKey = eatStringSpace(message.getRxString(),4);
-        if (hash.containsKey(hashKey)) {
-            Message mesHash = hash.get(hashKey);
+        Message mesHash = db.getFromCach(hashKey);
+        if (mesHash!=null) {
             byte[] tx = mesHash.getTx();
             tx[0] = message.getRx()[0];
             tx[1] = message.getRx()[1];
@@ -143,8 +142,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     }
 
     private void toHash(Message message){
-        String hashKey = eatStringSpace(message.getRxString(),4);
-        hash.put(hashKey,message);
+        db.putToCach(eatStringSpace(message.getRxString(),4),message);
     }
 
     public String eatStringSpace(String text,int number){

@@ -2,42 +2,124 @@ package database;
 
 
 import base.Database;
-import base.ParseMessage;
 import base.RegistrsTypes;
 import base.View;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
+import helpers.ExcelHelper;
 import message.Message;
-import view.GuiModbusTableView;
 
 import static  helpers.LogicHelper.*;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class RegistrsHashMap implements Database{
+    private static final String RESOURCES = "xls\\";
     private  Map<RegistrsTypes,Map<Integer,Boolean>> databaseBool = new HashMap<>();
     private  Map<RegistrsTypes,Map<Integer,Integer>> databaseInt = new HashMap<>();
+    private  Map<RegistrsTypes,Map<Integer,String>> databaseString = new HashMap<>();
     private Map<String, Message> hash = new HashMap<>();
     private View view = (View) FactorySetup.getClazz("View");
 
     public RegistrsHashMap() {
-        databaseBool.put(RegistrsTypes.COILS, new HashMap<>());
-        databaseBool.put(RegistrsTypes.DINPUT, new HashMap<>());
-        databaseInt.put(RegistrsTypes.HOLDING, new HashMap<>());
-        databaseInt.put(RegistrsTypes.INPUTREG, new HashMap<>());
-        create();
+    }
+
+    private void init() {
+        databaseBool.put(RegistrsTypes.COILS, new TreeMap<>());
+        databaseString.put(RegistrsTypes.COILS, new TreeMap<>());
+        databaseBool.put(RegistrsTypes.DINPUT, new TreeMap<>());
+        databaseString.put(RegistrsTypes.DINPUT, new TreeMap<>());
+        databaseInt.put(RegistrsTypes.HOLDING, new TreeMap<>());
+        databaseString.put(RegistrsTypes.HOLDING, new TreeMap<>());
+        databaseInt.put(RegistrsTypes.INPUTREG, new TreeMap<>());
+        databaseString.put(RegistrsTypes.INPUTREG, new TreeMap<>());
     }
 
     @Override
-    public void create() {
+    public void clearDb() {
+        databaseBool.clear();
+        databaseInt.clear();
+        databaseString.clear();
+    }
+
+    @Override
+    public void create(String name) {
+        final int NAME=0;
+        final int REG=1;
+        final int VALUE=3;
+        final int FUNC=2;
+
+        clearDb();
+        init();
+
+        if (name.equals("test")) {
         for (int i = 0; i <100; i++)     databaseInt.get(RegistrsTypes.HOLDING).put(300+i,i);
+        for (int i = 0; i <100; i++)     databaseString.get(RegistrsTypes.HOLDING).put(300+i,"hold " + i);
         for (int i = 0; i <18; i++)      databaseInt.get(RegistrsTypes.INPUTREG).put(400+i,18-i);
         for (int i = 1; i <18; i++)      databaseBool.get(RegistrsTypes.COILS).put(99+i,(i%2==0));
         for (int i = 1; i <18; i++)      databaseBool.get(RegistrsTypes.DINPUT).put(199+i,i%2!=0);
+        return;
+        }
+        if (name.equals("none")) {
+            return;
+        }
+
+        List<String[]> list =  ExcelHelper.readLines(RESOURCES + name);
+        if (list!=null)
+            for (String[] line : list) {
+                RegistrsTypes type = RegistrsTypes.values()[Integer.valueOf(line[FUNC])];
+                int val;
+                int reg;
+                try {
+                    val = Integer.valueOf(line[VALUE]);
+                }catch (Exception e) {val =0;}
+                try {
+                    reg = Integer.valueOf(line[REG]);
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+                switch (type){
+                    case COILS:
+                    case DINPUT:{
+                        Map<Integer,Boolean> map = databaseBool.get(type);
+                        map.put(reg,val==1);
+                        databaseString.get(type).put(Integer.valueOf(line[REG]),line[NAME]);
+                        break;
+                    }
+                    case HOLDING:
+                    case INPUTREG:{
+                        Map<Integer,Integer> map = databaseInt.get(type);
+                        map.put(reg,val);
+                        databaseString.get(type).put(Integer.valueOf(line[REG]),line[NAME]);
+                        break;
+                    }
+                }
+            }
+    }
+
+    @Override
+    public void add(RegistrsTypes type, int reg, int num) {
+        switch (type) {
+            case DINPUT:
+            case COILS: {
+                Map<Integer, Boolean> map = databaseBool.get(type);
+                for (int i = reg; i < reg + num; i++) {
+                    map.put(i, false);
+                    setName(reg, type, "");
+                }
+                break;
+            }
+            case HOLDING:
+            case INPUTREG: {
+                Map<Integer, Integer> map = databaseInt.get(type);
+                for (int i = reg; i < reg + num; i++) {
+                    map.put(i, 0);
+                    setName(reg, type, "");
+                }
+                break;
+            }
+        }
+        view.createTable();
     }
 
     @Override
@@ -101,6 +183,18 @@ public class RegistrsHashMap implements Database{
     }
 
     @Override
+    public String getName(int reg, RegistrsTypes type){
+        Map<Integer,String> map = databaseString.get(type);
+        return map.get(reg);
+    }
+
+    @Override
+    public void setName(int reg, RegistrsTypes type, String value) {
+        Map<Integer,String> map = databaseString.get(type);
+        map.put(reg,value);
+    }
+
+    @Override
     public Map getMap(RegistrsTypes type) {
         switch (type){
             case DINPUT:
@@ -108,7 +202,8 @@ public class RegistrsHashMap implements Database{
                 return databaseBool.get(type);
             }
             case INPUTREG:
-            case HOLDING:return databaseInt.get(type);
+            case HOLDING:
+                return databaseInt.get(type);
         }
         return null;
     }
@@ -119,7 +214,13 @@ public class RegistrsHashMap implements Database{
     }
 
     @Override
-    public Map getCach() {
-        return hash;
+    public void putToCach(String key, Message message) {
+         hash.put(key,message);
+    }
+
+    @Override
+    public Message getFromCach(String key) {
+        if (hash.containsKey(key)) return hash.get(key);
+        return null;
     }
 }

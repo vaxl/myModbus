@@ -2,6 +2,7 @@ package model;
 
 import base.Connection;
 import base.Database;
+import base.RegistrsTypes;
 import base.View;
 import database.RegistrsHashMap;
 import factory.FactorySetup;
@@ -32,6 +33,7 @@ public class Model {
         view = (View) FactorySetup.getClazz("View");
         text = (Text) FactorySetup.getClazz("text.xml");
         view.setLogView(View.logView.valueOf(setup.logView));
+        initDatabase();
     }
     public void refreshConf(){
         FactorySetup.readXml("setup.xml");
@@ -44,7 +46,18 @@ public class Model {
     }
 
     public void initDatabase(){
-        FactorySetup.addToFactory("Database",new RegistrsHashMap());
+        Database db = (Database) FactorySetup.getClazz("Database");
+        if(db==null){
+            db = new RegistrsHashMap();
+            FactorySetup.addToFactory("Database", db);
+        }
+        db.create(view.getDbType());
+    }
+
+    public void addDb(int reg, int num, RegistrsTypes type){
+        //initDatabase();
+        Database db = (Database) FactorySetup.getClazz("Database");
+        db.add(type,reg,num);
     }
 
 

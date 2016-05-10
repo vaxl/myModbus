@@ -14,7 +14,8 @@
     <ERRFUNC>Неподдерживаемая функция </ERRFUNC>
     <ERRREG> нет таких регистров в БД </ERRREG>
     <ERRDB>Нет базы данных</ERRDB>
-
+    <ERRCRC>Ошибка CRC</ERRCRC>
+    <ERRID>Не тот id</ERRID>
 
     <RX>Запрос: </RX>
     <TX>Ответ-> </TX>
@@ -23,6 +24,7 @@
     <FUNCTION> функция = </FUNCTION>
     <NUMBER> кол-во =  </NUMBER>
     <DATA> данные = </DATA>
+    <CRC> crc = </CRC>
     <CMDACKNOL> команда подтвежденна</CMDACKNOL>
 
     <GUINAME>MyModbus</GUINAME>

@@ -1,5 +1,6 @@
 package controller;
 
+import base.RegistrsTypes;
 import base.View;
 import factory.FactorySetup;
 import helpers.LogicHelper;
@@ -25,7 +26,6 @@ public class GuiController {
         controller.text = (Text) FactorySetup.getClazz("text.xml");
         controller.setup = (Setup) FactorySetup.getClazz("setup.xml");
         controller.view.init();
-
     }
 
     public void cmd(String msg){
@@ -56,12 +56,13 @@ public class GuiController {
                 break;
             }
             case "setConnection":{
-                if (cmd[1]==null) view.print(text.ENTERPROTOCOL);
+                if (cmd[1]==null) view.print(text.ENTERCONNECTION);
                 else setup.connection= cmd[1].trim();
                 break;
             }
             case "tx": {
-                if (cmd[1]==null | cmd[1].equals("")) break;
+                if (cmd[1]==null) break;
+                if (cmd[1].equals("")) break;
                 if (setup.protocol.equals("Text"))
                     model.write(LogicHelper.textToByte(cmd[1]));
                 else model.write(LogicHelper.strByteToByte(cmd[1]));
@@ -71,6 +72,11 @@ public class GuiController {
             case "addDb": {
                 model.initDatabase();
                 view.createTable();
+                break;
+            }
+            case "add": {
+                String param [] = cmd[1].trim().split(" ");
+                model.addDb(Integer.valueOf(param[0]),Integer.valueOf(param[1]), RegistrsTypes.values()[Integer.valueOf(param[2])]);
                 break;
             }
             case "clearCach":{

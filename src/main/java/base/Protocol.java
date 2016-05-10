@@ -1,5 +1,5 @@
 package base;
 
 public enum Protocol {
-    No, ModbusSlaveTcp, Text
+    No, ModbusSlaveTcp, Text, ModbusSlaveRs
 }

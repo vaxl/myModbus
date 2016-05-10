@@ -72,4 +72,13 @@ public class ConsoleView implements View {
         this.logView = logView;
     }
 
+    @Override
+    public String getDbType() {
+        return null;
+    }
+
+    @Override
+    public void createTable() {
+
+    }
 }

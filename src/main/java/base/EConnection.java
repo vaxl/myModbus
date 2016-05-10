@@ -1,5 +1,5 @@
 package base;
 
 public enum EConnection {
-    TcpServer
+    TcpServer,RsServer
 }

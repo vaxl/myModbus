@@ -18,4 +18,6 @@ public interface View {
     String readText();
     void setLogView(logView logView);
     void dbChanged();
+    String getDbType();
+    void createTable();
 }
