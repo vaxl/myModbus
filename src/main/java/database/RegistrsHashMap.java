@@ -10,6 +10,7 @@ import java.util.*;
 
 public class RegistrsHashMap implements Database{
     private static final String RESOURCES = "xls\\";
+    private Map<Integer,Map<RegTypes,TreeMap<Integer,Registr>>> databases = new HashMap<>();
     private  Map<RegTypes,TreeMap<Integer,Registr>> database = new HashMap<>();
     private View view = (View) FactorySetup.getClazz("View");
     private CachMap cach = new CachMap();

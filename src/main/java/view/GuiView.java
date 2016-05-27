@@ -39,8 +39,11 @@ public class GuiView implements View {
     private JMenu menuConnection = new JMenu(text.GUICONNECTION);
     private JMenu menuDb = new JMenu("Database");
     private JTabbedPane tabs = new JTabbedPane();
+    private JTabbedPane mainTab = new JTabbedPane();
     private JPanel panel = new JPanel();
     private Map<RegTypes,GuiModbusTableView> tabModels;
+    private Map<Integer, Map<RegTypes,GuiModbusTableView>> mainTabs = new HashMap<>();
+    int id;
 
     public GuiView(GuiController controller) {
         this.controller = controller;
@@ -208,21 +211,19 @@ public class GuiView implements View {
 
     @Override
     public void createTable(){
-        Database db = (Database) FactorySetup.getClazz("Database");
-        if(db!=null) {
-            tabs.removeAll();
-            for(RegTypes r : RegTypes.values()) {
-                if (db.sizeTable(r)==0) continue;
-                GuiModbusTableView model = new GuiModbusTableView(controller,r);
-                tabModels= new HashMap<>();
-                tabModels.put(r,model);
-                JTable table = new JTable(model);
-                JScrollPane pane = new JScrollPane(table);
-                tabs.addTab(r.name(), pane);
-                toolBarData.add(tabs);
-                frame.pack();
-            }
-        } else print(text.ERRDB);
+        JFrame frame = new JFrame("ID");
+        JTextField id = new JTextField(10);
+        JButton ok1 = new JButton("OK");
+        frame.getContentPane().add(id, BorderLayout.WEST);
+        frame.getContentPane().add(new JLabel("ID"), BorderLayout.NORTH);
+        frame.getContentPane().add(ok1, BorderLayout.SOUTH);
+        frame.setVisible(true);
+        frame.pack();
+        ok1.addActionListener(e -> {
+            setId(Integer.valueOf(id.getText()));
+            startCreateTable();
+            frame.setVisible(false);
+        });
     }
 
     @Override
@@ -258,5 +259,27 @@ public class GuiView implements View {
         frame.getContentPane().add(ok, BorderLayout.SOUTH);
         frame.setVisible(true);
         frame.pack();
+    }
+
+    private void startCreateTable(){
+        Database db = (Database) FactorySetup.getClazz("Database");
+        if(db!=null) {
+            for(RegTypes r : RegTypes.values()) {
+                if (db.sizeTable(r)==0) continue;
+                GuiModbusTableView model = new GuiModbusTableView(controller,r);
+                tabModels= new HashMap<>();
+                tabModels.put(r,model);
+                JTable table = new JTable(model);
+                JScrollPane pane = new JScrollPane(table);
+                tabs.addTab(r.name(), pane);
+            }
+            mainTab.addTab(id+"",tabs);
+            toolBarData.add(mainTab);
+            frame.pack();
+        } else print(text.ERRDB);
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
