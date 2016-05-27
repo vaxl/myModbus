@@ -27,6 +27,10 @@
     <CRC> crc = </CRC>
     <CMDACKNOL> команда подтвежденна</CMDACKNOL>
 
+    <GI>ОБД</GI>
+    <STARTACT>Стартовый пакет</STARTACT>
+    <TESTACT>Тестовый пакет</TESTACT>
+
     <GUINAME>MyModbus</GUINAME>
     <GUICONNECT>Connect</GUICONNECT>
     <GUISTART>Start</GUISTART>

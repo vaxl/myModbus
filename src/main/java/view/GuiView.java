@@ -1,6 +1,5 @@
 package view;
 
-
 import base.*;
 import controller.GuiController;
 import factory.FactorySetup;
@@ -11,7 +10,6 @@ import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class GuiView implements View {
     private static final String RESOURCES = "xls/";
@@ -30,8 +28,8 @@ public class GuiView implements View {
     private JButton buttonClear = new JButton(text.GUICLEAR);
     private JButton buttonSend = new JButton(text.GUISEND);
     private JButton buttonStop = new JButton(text.GUISTOP);
-    private JButton buttonAdd = new JButton("AddDB");
-    private JButton buttonDb = new JButton("DB");
+    private JButton buttonAdd = new JButton("AddRegs");
+    private JButton buttonDb = new JButton("AddDB");
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menu = new JMenu(text.GUICONNECT);
     private JMenu menuLog = new JMenu(text.GUILOGGER);
@@ -42,7 +40,7 @@ public class GuiView implements View {
     private JMenu menuDb = new JMenu("Database");
     private JTabbedPane tabs = new JTabbedPane();
     private JPanel panel = new JPanel();
-    private Map<RegistrsTypes,GuiModbusTableView> tabModels;
+    private Map<RegTypes,GuiModbusTableView> tabModels;
 
     public GuiView(GuiController controller) {
         this.controller = controller;
@@ -82,7 +80,7 @@ public class GuiView implements View {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         cmdField.addActionListener(e -> {
-            controller.cmd(cmdField.getText());
+            controller.cmdConsole(cmdField.getText());
             cmdField.setText("");
         });
     }
@@ -96,33 +94,17 @@ public class GuiView implements View {
     public void print(Message message) {
         if (message!=null) {
             switch (logView) {
-                case ORIGINAL:
-                    if (message.getStatus() != MessageStatus.NOANSWER) messages.insert(message.getTxString()+"\n",0);
-                    messages.insert(message.getRxString()+"\n",0);
-                    break;
-                case HEX:
-                    if (message.getStatus() != MessageStatus.NOANSWER) messages.insert(message.getTxHexString()+"\n",0);
-                    messages.insert(message.getRxHexString()+"\n",0);
-                    break;
-                case TEXT:
-                    if (message.getStatus() != MessageStatus.NOANSWER) messages.insert(message.getTxText()+"\n",0);
-                    messages.insert(message.getRxText()+"\n",0);
-                    break;
-                case DECODE:
-                    if (message.getStatus() != MessageStatus.NOANSWER) messages.insert(message.getTxDecode()+"\n",0);
-                    messages.insert(message.getRxDecode()+"\n",0);
-                    break;
                 case ONLYERRORS:
                     if (message.getStatus() == MessageStatus.ERR) {
-                        messages.insert(message.getTxDecode() + "\n", 0);
-                        messages.insert(message.getRxDecode() + "\n", 0);
+                        messages.insert(text.TX +  message.getLogTx(logView)+"\n",0);
+                        messages.insert(text.RX +message.getLogRx(logView)+"\n",0);
                     }
                     break;
                 case OFF:
                     break;
                 default:
-                    if (message.getStatus() != MessageStatus.NOANSWER) messages.insert(message.getTxDecode()+"\n",0);
-                    messages.insert(message.getRxDecode()+"\n",0);
+                    if (message.getStatus() != MessageStatus.NOANSWER) messages.insert(text.TX + message.getLogTx(logView)+"\n",0);
+                    if (message.getStatus() != MessageStatus.SEND) messages.insert(text.RX + message.getLogRx(logView)+"\n",0);
                     break;
             }
         }
@@ -154,12 +136,12 @@ public class GuiView implements View {
         toolBar.add(buttonDb);
         toolBar.add(buttonAdd);
 
-        buttonStart.addActionListener(e -> controller.cmd("run"));
-        buttonDb.addActionListener(e -> controller.cmd("addDb"));
-        buttonStop.addActionListener(e -> controller.cmd("stop"));
+        buttonStart.addActionListener(e -> controller.start());
+        buttonDb.addActionListener(e -> controller.addDb());
+        buttonStop.addActionListener(e -> controller.stop());
         buttonClear.addActionListener(e -> messages.setText(""));
         buttonSend.addActionListener(e -> {
-            controller.cmd("tx " + cmdField.getText());
+            controller.writeToPort(cmdField.getText());
             cmdField.setText("");
         });
         buttonAdd.addActionListener(e -> contexDb());
@@ -170,7 +152,8 @@ public class GuiView implements View {
         for(View.logView v: View.logView.values()) {
             JRadioButtonMenuItem rad = new JRadioButtonMenuItem(v.name());
             group.add(rad);
-            rad.addActionListener(e -> controller.cmd("setlog " + e.getActionCommand()));
+            if(setup.logView.equals(v.name())) rad.setSelected(true);
+            rad.addActionListener(e -> controller.setLog(e.getActionCommand()));
             menuLog.add(rad);
         }
     }
@@ -207,7 +190,7 @@ public class GuiView implements View {
             JRadioButtonMenuItem rad = new JRadioButtonMenuItem(v.name());
             group.add(rad);
             if(setup.protocol.equals(v.name())) rad.setSelected(true);
-            rad.addActionListener(e -> controller.cmd("setProtocol " + e.getActionCommand()));
+            rad.addActionListener(e -> controller.setProtocol(e.getActionCommand()));
             menuProtocol.add(rad);
         }
     }
@@ -218,7 +201,7 @@ public class GuiView implements View {
             JRadioButtonMenuItem rad = new JRadioButtonMenuItem(v.name());
             group.add(rad);
             if(setup.connection.equals(v.name())) rad.setSelected(true);
-            rad.addActionListener(e -> controller.cmd("setConnection " + e.getActionCommand()));
+            rad.addActionListener(e -> controller.setConnection(e.getActionCommand()));
             menuConnection.add(rad);
         }
     }
@@ -228,11 +211,9 @@ public class GuiView implements View {
         Database db = (Database) FactorySetup.getClazz("Database");
         if(db!=null) {
             tabs.removeAll();
-            for(RegistrsTypes r : RegistrsTypes.values()) {
-                Map map = db.getMap(r);
-                if (map==null) continue;
-                if (map.isEmpty()) continue;
-                GuiModbusTableView model = new GuiModbusTableView(map, controller, db,r);
+            for(RegTypes r : RegTypes.values()) {
+                if (db.sizeTable(r)==0) continue;
+                GuiModbusTableView model = new GuiModbusTableView(controller,r);
                 tabModels= new HashMap<>();
                 tabModels.put(r,model);
                 JTable table = new JTable(model);
@@ -246,7 +227,7 @@ public class GuiView implements View {
 
     @Override
     public void dbChanged() {
-        for (RegistrsTypes r: RegistrsTypes.values()) {
+        for (RegTypes r: RegTypes.values()) {
             GuiModbusTableView tabModel = tabModels.get(r);
             if (tabModel!=null)
                 tabModel.fireTableDataChanged();
@@ -269,7 +250,7 @@ public class GuiView implements View {
         panel.add(type);
 
         ok.addActionListener(e -> {
-            controller.cmd("add " + reg.getText() + " " + num.getText() + " " + type.getText());
+            controller.addRegs(reg.getText(),num.getText(),type.getText());
             frame.setVisible(false);
         });
 

@@ -2,7 +2,6 @@ package portWork;
 
 import base.*;
 import factory.FactorySetup;
-import helpers.LogicHelper;
 import message.Message;
 import message.MessageParseExec;
 import settings.*;
@@ -22,7 +21,9 @@ public class TcpServer implements Connection {
     private Socket socket;
     private InputStream in;
     private OutputStream out;
-    private AtomicBoolean run=new AtomicBoolean();
+    private AtomicBoolean run   = new AtomicBoolean();
+    private AtomicBoolean event = new AtomicBoolean();
+    private byte[] mes;
 
     public TcpServer() {
         text = (Text) FactorySetup.getClazz("text.xml");
@@ -37,11 +38,16 @@ public class TcpServer implements Connection {
                 if(!isAlive()) break;
                 if (in.available() > 0) {
                     byte[] arr = new byte[in.available()];
-                    in.read(arr);
+                    int count = in.read(arr);
                     Message message = new Message(arr);
                     message.setStatus(MessageStatus.OK);
                     return message;
                 } else {
+                    if (event.get()){
+                        Message message = new Message(mes);
+                        message.setStatus(MessageStatus.SEND);
+                        return message;
+                    }
                     Thread.sleep(10);
                 }
             }
@@ -108,6 +114,7 @@ public class TcpServer implements Connection {
                         write(message);
                     view.print(message);
                 }
+                if (event.get()) event.set(false);
             }
         }
     }
@@ -121,5 +128,11 @@ public class TcpServer implements Connection {
             e.printStackTrace();
             stop();
         }
+    }
+
+    @Override
+    public void event (byte[] message) {
+        mes = message;
+        event.set(true);
     }
 }

@@ -118,4 +118,9 @@ public class RsServer implements Connection {
             }
         }
     }
+
+    @Override
+    public void event(byte[] message) {
+        //TODO
+    }
 }

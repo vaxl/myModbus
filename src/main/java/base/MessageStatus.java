@@ -1,5 +1,5 @@
 package base;
 
 public enum MessageStatus {
-    OK,NOANSWER,ERR,NOCONNECT,WRONGPACK
+    OK,NOANSWER,ERR,NOCONNECT,WRONGPACK,SEND,START
 }

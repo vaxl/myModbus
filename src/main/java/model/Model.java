@@ -1,11 +1,9 @@
 package model;
 
-import base.Connection;
-import base.Database;
-import base.RegistrsTypes;
-import base.View;
+import base.*;
 import database.RegistrsHashMap;
 import factory.FactorySetup;
+import helpers.LogicHelper;
 import helpers.ReflectionHelper;
 import settings.Setup;
 import settings.Text;
@@ -54,13 +52,10 @@ public class Model {
         db.create(view.getDbType());
     }
 
-    public void addDb(int reg, int num, RegistrsTypes type){
-        //initDatabase();
+    public void addDb(int reg, int num, RegTypes type){
         Database db = (Database) FactorySetup.getClazz("Database");
         db.add(type,reg,num);
     }
-
-
 
     public void stop(){
         if (connection!=null) connection.stop();
@@ -68,6 +63,11 @@ public class Model {
 
     public void clearCach() {
         Database db = (Database) FactorySetup.getClazz("Database");
-        db.clearCach();
+        db.getCach().clearCach();
+    }
+
+    public void event(RegTypes type, int key) {
+        if(connection==null) return;
+        connection.event(new byte[]{(byte)type.ordinal(), LogicHelper.int2ByteHi(key),LogicHelper.int2ByteLo(key)});
     }
 }

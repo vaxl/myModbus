@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class MessageParseExec {
     private static Map<Protocol, ParseMessage> commandMap;
-    private final static String DIR = "message.";
+    private final static String DIR = "message.parsers.";
 
     static {
         commandMap = new HashMap<>();

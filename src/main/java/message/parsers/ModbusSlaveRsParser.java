@@ -1,16 +1,18 @@
-package message;
+package message.parsers;
 
 import base.*;
+import database.CachMap;
 import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
-import settings.Setup;
-import settings.Text;
+import message.Message;
+import settings.*;
 import java.util.Arrays;
+
+import static base.View.logView.*;
 import static helpers.LogicHelper.*;
+import static message.parsConst.ModbusRs.*;
 
 public class ModbusSlaveRsParser implements ParseMessage {
-    private final int ID=0;
-    private final int FUNC=1;
     private StringBuilder strRx;
     private StringBuilder strTx;
     private MessageStatus status;
@@ -18,6 +20,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
     private View view = (View) FactorySetup.getClazz("View");
     private Text text = (Text) FactorySetup.getClazz("text.xml");
     private Setup setup = (Setup) FactorySetup.getClazz("setup.xml");
+    private CachMap cach = db.getCach();
 
     @Override
     public void execute(Message message) {
@@ -28,20 +31,16 @@ public class ModbusSlaveRsParser implements ParseMessage {
                 message.setRxDecode(strRx.toString());
                 message.setTxDecode(strTx.toString());
                 message.setStatus(status);
-                db.putToCach(message.getRxString(),message);
+                cach.putToCach(message.getLogRx(ORIGINAL),message);
             }
         }else message.setStatus(MessageStatus.NOANSWER);
     }
 
     private byte[] parsePack(byte[] rx) {
-        final int REGHI = 2;
-        final int REGLO=3;
-        final int NUMHI=4;
-        final int NUMLO=5;
         int reg = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
 
-        strRx = new StringBuilder(text.RX)
+        strRx = new StringBuilder()
                       .append(text.ADDRES)
                       .append(rx[ID])
                       .append(text.FUNCTION)
@@ -59,18 +58,16 @@ public class ModbusSlaveRsParser implements ParseMessage {
         byte[] data;
         try{
             if (rx[FUNC]<5){
-                data = db.read(reg,num, RegistrsTypes.values()[rx[FUNC]]);
+                data = db.read(reg,num, RegTypes.values()[rx[FUNC]]);
             }
             else{
-                db.update(reg,1,RegistrsTypes.values()[rx[FUNC]],num);
-                db.clearCach();
-                strTx = new StringBuilder(text.TX)
-                        .append(text.CMDACKNOL);
+                db.setValue(reg, RegTypes.values()[rx[FUNC]],num);
+                cach.clearCach();
+                strTx = new StringBuilder(text.CMDACKNOL);
                 return rx;
             }
         }catch (NoSuchRegistrs e) {
-            strTx = new StringBuilder(text.TX)
-                              .append(text.ERRREG);
+            strTx = new StringBuilder(text.ERRREG);
             byte[] errtx = new byte[5];
             errtx[ID]= rx[ID];
             errtx[FUNC] =(byte) (rx[FUNC] | 128);
@@ -86,8 +83,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
         tx[ID] = rx[ID];
         tx[FUNC] = rx[FUNC];
         tx[2] =(byte) data.length;
-        strTx = new StringBuilder(text.TX)
-                          .append(text.ADDRES)
+        strTx = new StringBuilder(text.ADDRES)
                           .append(tx[ID])
                           .append(text.FUNCTION)
                           .append(tx[FUNC])
@@ -124,10 +120,10 @@ public class ModbusSlaveRsParser implements ParseMessage {
 
     private boolean fromHash(Message message) {
         if (message.getRx()[FUNC]>4) return false;
-        Message mesHash = db.getFromCach(message.getRxString());
+        Message mesHash = cach.getFromCach(message.getLogRx(ORIGINAL));
         if (mesHash!=null) {
-            message.setRxDecode(mesHash.getRxDecode());
-            message.setTxDecode(mesHash.getTxDecode());
+            message.setRxDecode(mesHash.getLogRx(DECODE));
+            message.setTxDecode(mesHash.getLogRx(DECODE));
             message.setTx(mesHash.getTx());
             message.setStatus(mesHash.getStatus());
             return true;

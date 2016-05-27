@@ -1,14 +1,12 @@
 package controller;
 
-import base.RegistrsTypes;
+import base.RegTypes;
 import base.View;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import model.Model;
-import settings.Setup;
-import settings.Text;
+import settings.*;
 import view.GuiView;
-
 
 public class GuiController {
     private Model model = new Model();
@@ -28,12 +26,45 @@ public class GuiController {
         controller.view.init();
     }
 
-    public void cmd(String msg){
+    public void start(){
+        model.start();
+    }
+    public void stop(){
+        model.stop();
+    }
+    public void setProtocol(String protocol){
+        setup.protocol = protocol;
+    }
+
+    public void setConnection(String con){
+        setup.connection = con;
+    }
+
+    public void addDb(){
+        model.initDatabase();
+        view.createTable();
+    }
+
+    public void addRegs(String reg, String num, String type){
+        model.addDb(Integer.valueOf(reg),Integer.valueOf(num),RegTypes.values()[Integer.valueOf(type)]);
+    }
+
+    public void writeToPort(String  data){
+        if (setup.protocol.equals(View.logView.TEXT.toString()))
+            model.write(LogicHelper.textToByte(data));
+        else model.write(LogicHelper.strByteToByte(data));
+        view.print(text.TX + data);
+    }
+
+    public void clearCach(){
+        model.clearCach();
+    }
+
+    public void cmdConsole(String msg){
         String [] cmd = msg.split(" ",2);
         switch (cmd[0].trim()) {
-            case "run": {
-                model.start();
-                break;
+            case "start": {
+                start();break;
             }
             case "exit": {
                 System.exit(0);
@@ -44,52 +75,34 @@ public class GuiController {
                 break;
             }
             case "setlog": {
-                if (cmd[1]==null) view.print(text.ENTERLOG);
-                else {
-                    setLog(cmd[1]);
-                }
+                setLog(cmd[1]);
                 break;
             }
             case "setProtocol":{
-                if (cmd[1]==null) view.print(text.ENTERPROTOCOL);
-                else setup.protocol= cmd[1].trim();
+                setProtocol(cmd[1]);
                 break;
             }
             case "setConnection":{
-                if (cmd[1]==null) view.print(text.ENTERCONNECTION);
-                else setup.connection= cmd[1].trim();
-                break;
-            }
-            case "tx": {
-                if (cmd[1]==null) break;
-                if (cmd[1].equals("")) break;
-                if (setup.protocol.equals("Text"))
-                    model.write(LogicHelper.textToByte(cmd[1]));
-                else model.write(LogicHelper.strByteToByte(cmd[1]));
-                view.print(text.TX + cmd[1]);
+                setConnection(cmd[1]);
                 break;
             }
             case "addDb": {
-                model.initDatabase();
-                view.createTable();
-                break;
-            }
-            case "add": {
-                String param [] = cmd[1].trim().split(" ");
-                model.addDb(Integer.valueOf(param[0]),Integer.valueOf(param[1]), RegistrsTypes.values()[Integer.valueOf(param[2])]);
+                addDb();
                 break;
             }
             case "clearCach":{
-                model.clearCach();
+                clearCach();
                 break;
             }
             default:view.print(text.NOCMD);
         }
     }
 
-    private void setLog(String log){
+    public void setLog(String log){
         view.setLogView(View.logView.valueOf(log));
     }
 
-
+    public void event(RegTypes type, int key) {
+         model.event(type,key);
+    }
 }

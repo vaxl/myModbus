@@ -1,17 +1,27 @@
 package helpers;
 
-import settings.Const;
+
 
 public final class LogicHelper {
+    private final static int maskLo    = 0xff;
+    private final static int maskHi    = 0xff00;
+    public final static int mask3Byte = 0xff0000;
+    public final static int mask4Byte = 0xff000000;
+    public final static int maskLastBit = 0x000001;
+
     public static int twoByte2Int(byte a, byte b) {
-        return (((a & Const.maskLo)<<8) | (b & Const.maskLo)) ;
+        return (((a & maskLo)<<8) | (b & maskLo)) ;
     }
     public static byte int2ByteHi(int a) {
-        return (byte)( (a & Const.maskHi)>>>8);
+        return (byte)( (a & maskHi)>>>8);
     }
     public static byte int2ByteLo(int a) {
-        return (byte)(a & Const.maskLo);
+        return (byte)(a & maskLo);
     }
+    public static byte getByte(long data,int N) {
+        return (byte)(data & (maskLo<<(N*8)));
+    }
+
     public static int bitInByte(int a) {
         if (a % 8 == 0) return a/8;
         return a/8+1;

@@ -1,17 +1,16 @@
-package message;
+package message.parsers;
 
 import base.*;
+import database.CachMap;
 import database.RegistrsHashMap;
 import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
+import message.Message;
 import settings.*;
-
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
+import static base.View.logView.*;
+import static message.parsConst.ModbusTcp.*;
 import static helpers.LogicHelper.*;
-import static helpers.LogicHelper.twoByte2Int;
 
 public class ModbusSlaveTcpParser implements ParseMessage {
     private View messageWork = (View) FactorySetup.getClazz("View");
@@ -20,6 +19,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     private StringBuilder strRx;
     private StringBuilder strTx;
     private MessageStatus status;
+    private CachMap cach = db.getCach();
     @Override
     public void execute(Message message) {
         if (db==null) db = new RegistrsHashMap();
@@ -49,18 +49,6 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     }
 
     private byte[] parsePack(byte[] rx){
-        final byte IDHI = 0;
-        final byte IDLO = 1;
-        final byte HEADHI=2;
-        final byte HEADLO=3;
-        final byte LENHI =4;
-        final byte LENLO =5;
-        final byte ADR  = 6;
-        final byte FUNC = 7;
-        final byte REGHI =8;
-        final byte REGLO =9;
-        final byte NUMHI=10;
-        final byte NUMLO=11;
         int dataSize;
         byte [] data;
 
@@ -71,8 +59,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
             else  dataSize = bitInByte(num);
         byte [] tx = new byte[dataSize + 9];
 
-        strRx = new StringBuilder(text.RX)
-                          .append(text.ADDRES)
+        strRx = new StringBuilder(text.ADDRES)
                           .append(rx[ADR])
                           .append(text.FUNCTION)
                           .append(rx[FUNC])
@@ -88,16 +75,14 @@ public class ModbusSlaveTcpParser implements ParseMessage {
 
         try{
             if (rx[FUNC]==5 | rx[FUNC]==6) {
-                db.update(startAdr,1,RegistrsTypes.values()[rx[FUNC]],num);
-                db.clearCach();
-                strTx = new StringBuilder(text.TX)
-                        .append(text.CMDACKNOL);
+                db.setValue(startAdr, RegTypes.values()[rx[FUNC]],num);
+                cach.clearCach();
+                strTx = new StringBuilder(text.CMDACKNOL);
                 return rx;
             }else
-            data = db.read(startAdr,num,RegistrsTypes.values()[rx[FUNC]]);
+            data = db.read(startAdr,num, RegTypes.values()[rx[FUNC]]);
         }catch (NoSuchRegistrs e) {
-            strTx = new StringBuilder(text.TX)
-                              .append(text.ERRREG);
+            strTx = new StringBuilder(text.ERRREG);
             tx[LENHI] = 0;
             tx[LENLO] = 3;
             tx[FUNC] = (byte) (rx[FUNC] | 128);
@@ -111,8 +96,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         tx[FUNC] = rx[FUNC];
         tx[8] =(byte) dataSize;
         status = MessageStatus.OK;
-        strTx = new StringBuilder(text.TX)
-                .append(text.ADDRES)
+        strTx = new StringBuilder(text.ADDRES)
                 .append(tx[ADR])
                 .append(text.FUNCTION)
                 .append(tx[FUNC])
@@ -126,14 +110,14 @@ public class ModbusSlaveTcpParser implements ParseMessage {
 
     private boolean fromHash(Message message){
         if (message.getRx()[7]>4) return false;
-        String hashKey = eatStringSpace(message.getRxString(),4);
-        Message mesHash = db.getFromCach(hashKey);
+        String hashKey = eatStringSpace(message.getLogRx(ORIGINAL),4);
+        Message mesHash = cach.getFromCach(hashKey);
         if (mesHash!=null) {
             byte[] tx = mesHash.getTx();
             tx[0] = message.getRx()[0];
             tx[1] = message.getRx()[1];
-            message.setRxDecode(mesHash.getRxDecode());
-            message.setTxDecode(mesHash.getTxDecode());
+            message.setRxDecode(mesHash.getLogRx(DECODE));
+            message.setTxDecode(mesHash.getLogRx(DECODE));
             message.setTx(tx);
             message.setStatus(mesHash.getStatus());
             return true;
@@ -142,7 +126,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     }
 
     private void toHash(Message message){
-        db.putToCach(eatStringSpace(message.getRxString(),4),message);
+        cach.putToCach(eatStringSpace(message.getLogRx(ORIGINAL),4),message);
     }
 
     public String eatStringSpace(String text,int number){

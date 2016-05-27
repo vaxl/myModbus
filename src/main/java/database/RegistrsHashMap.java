@@ -1,45 +1,32 @@
 package database;
 
-
-import base.Database;
-import base.RegistrsTypes;
-import base.View;
+import base.*;
 import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
 import helpers.ExcelHelper;
 import message.Message;
-
 import static  helpers.LogicHelper.*;
-
 import java.util.*;
 
 public class RegistrsHashMap implements Database{
     private static final String RESOURCES = "xls\\";
-    private  Map<RegistrsTypes,Map<Integer,Boolean>> databaseBool = new HashMap<>();
-    private  Map<RegistrsTypes,Map<Integer,Integer>> databaseInt = new HashMap<>();
-    private  Map<RegistrsTypes,Map<Integer,String>> databaseString = new HashMap<>();
-    private Map<String, Message> hash = new HashMap<>();
+    private  Map<RegTypes,TreeMap<Integer,Registr>> database = new HashMap<>();
     private View view = (View) FactorySetup.getClazz("View");
-
-    public RegistrsHashMap() {
-    }
+    private CachMap cach = new CachMap();
 
     private void init() {
-        databaseBool.put(RegistrsTypes.COILS, new TreeMap<>());
-        databaseString.put(RegistrsTypes.COILS, new TreeMap<>());
-        databaseBool.put(RegistrsTypes.DINPUT, new TreeMap<>());
-        databaseString.put(RegistrsTypes.DINPUT, new TreeMap<>());
-        databaseInt.put(RegistrsTypes.HOLDING, new TreeMap<>());
-        databaseString.put(RegistrsTypes.HOLDING, new TreeMap<>());
-        databaseInt.put(RegistrsTypes.INPUTREG, new TreeMap<>());
-        databaseString.put(RegistrsTypes.INPUTREG, new TreeMap<>());
+        for (RegTypes r : RegTypes.values())
+            database.put(r,new TreeMap<>());
+    }
+
+    @Override
+    public CachMap getCach() {
+        return cach;
     }
 
     @Override
     public void clearDb() {
-        databaseBool.clear();
-        databaseInt.clear();
-        databaseString.clear();
+        database.clear();
     }
 
     @Override
@@ -53,89 +40,54 @@ public class RegistrsHashMap implements Database{
         init();
 
         if (name.equals("test")) {
-        for (int i = 0; i <100; i++)     databaseInt.get(RegistrsTypes.HOLDING).put(300+i,i);
-        for (int i = 0; i <100; i++)     databaseString.get(RegistrsTypes.HOLDING).put(300+i,"hold " + i);
-        for (int i = 0; i <18; i++)      databaseInt.get(RegistrsTypes.INPUTREG).put(400+i,18-i);
-        for (int i = 1; i <18; i++)      databaseBool.get(RegistrsTypes.COILS).put(99+i,(i%2==0));
-        for (int i = 1; i <18; i++)      databaseBool.get(RegistrsTypes.DINPUT).put(199+i,i%2!=0);
+        for (int i = 0; i <100; i++)     database.get(RegTypes.HOLDING).put(300+i,new Registr("reg" + i , i));
+        for (int i = 0; i <18; i++)      database.get(RegTypes.INPUTREG).put(400+i,new Registr("reg" + i ,18-i));
+        for (int i = 1; i <18; i++)      database.get(RegTypes.COILS).put(99+i,new Registr("reg" + i , i%2));
+        for (int i = 1; i <18; i++)      database.get(RegTypes.DINPUT).put(199+i,new Registr("reg" + i , i%2));
+
+        for (int i = 1; i <5; i++)      database.get(RegTypes.SINGLEBIT).put(199+i,new Registr("reg" + i , i%2));
+        for (int i = 1; i <5; i++)      database.get(RegTypes.SCALEDMESURE).put(100+i,new Registr("reg" + i , i));
         return;
         }
-        if (name.equals("none")) {
-            return;
+        if (name.contains(".")) {
+            List<String[]> list = ExcelHelper.readLines(RESOURCES + name);
+            if (list != null)
+                for (String[] line : list) {
+                    RegTypes type = RegTypes.values()[Integer.valueOf(line[FUNC])];
+                    int val;
+                    int reg;
+                    try {
+                        val = Integer.valueOf(line[VALUE]);
+                        reg = Integer.valueOf(line[REG]);
+                    } catch (Exception e) {continue;}
+                    getMap(type).put(reg, new Registr(line[NAME], val));
+                }
         }
-
-        List<String[]> list =  ExcelHelper.readLines(RESOURCES + name);
-        if (list!=null)
-            for (String[] line : list) {
-                RegistrsTypes type = RegistrsTypes.values()[Integer.valueOf(line[FUNC])];
-                int val;
-                int reg;
-                try {
-                    val = Integer.valueOf(line[VALUE]);
-                }catch (Exception e) {val =0;}
-                try {
-                    reg = Integer.valueOf(line[REG]);
-                } catch (NumberFormatException e) {
-                    continue;
-                }
-                switch (type){
-                    case COILS:
-                    case DINPUT:{
-                        Map<Integer,Boolean> map = databaseBool.get(type);
-                        map.put(reg,val==1);
-                        databaseString.get(type).put(Integer.valueOf(line[REG]),line[NAME]);
-                        break;
-                    }
-                    case HOLDING:
-                    case INPUTREG:{
-                        Map<Integer,Integer> map = databaseInt.get(type);
-                        map.put(reg,val);
-                        databaseString.get(type).put(Integer.valueOf(line[REG]),line[NAME]);
-                        break;
-                    }
-                }
-            }
     }
 
     @Override
-    public void add(RegistrsTypes type, int reg, int num) {
-        switch (type) {
-            case DINPUT:
-            case COILS: {
-                Map<Integer, Boolean> map = databaseBool.get(type);
-                for (int i = reg; i < reg + num; i++) {
-                    map.put(i, false);
-                    setName(reg, type, "");
-                }
-                break;
-            }
-            case HOLDING:
-            case INPUTREG: {
-                Map<Integer, Integer> map = databaseInt.get(type);
-                for (int i = reg; i < reg + num; i++) {
-                    map.put(i, 0);
-                    setName(reg, type, "");
-                }
-                break;
-            }
+    public void add(RegTypes type, int reg, int num) {
+        Map<Integer,Registr> map = database.get(type);
+        for (int i = reg; i < reg + num; i++) {
+             map.put(i, new Registr());
         }
         view.createTable();
     }
 
     @Override
-    public byte[] read(int reg, int num, RegistrsTypes type) throws NoSuchRegistrs {
+    public byte[] read(int reg, int num, RegTypes type) throws NoSuchRegistrs {
         byte[] res;
         int temp=0;
-
+        Map<Integer,Registr> map = database.get(type);
+        if (map==null) throw new NoSuchRegistrs();
         switch (type) {
             case DINPUT:
             case COILS: {
-                Map<Integer,Boolean> map = databaseBool.get(type);
                 res = new byte[bitInByte(num)];
                 for (int i = 0; i <  num ; i++) {
                     if (map.containsKey(i+reg)) {
                         if (i%8==0)   temp = 0;
-                        if (map.get(i+reg)){
+                        if (map.get(i+reg).getValue()==1){
                             temp += (int)(Math.pow(2,(i%8)));
                             res[i/8] =int2ByteLo(temp);
                         }
@@ -143,13 +95,18 @@ public class RegistrsHashMap implements Database{
                 }
                 break;
             }
+            case SINGLEBIT:{
+                if (map.containsKey(reg)) {
+                    return new byte[]{int2ByteLo(map.get(reg).getValue())};
+                }else throw new NoSuchRegistrs();
+            }
+            case SCALEDMESURE:
             case HOLDING:
             case INPUTREG:{
-                Map<Integer,Integer> map = databaseInt.get(type);
                 res = new byte[num*2];
                 for (int i = 0; i <  num ; i++) {
                     if (map.containsKey(i+reg)) {
-                        int d = map.get(reg+i);
+                        int d = map.get(reg+i).getValue();
                         res[i*2] = int2ByteHi(d);
                         res[i*2+1] = int2ByteLo(d);
                     }else throw new NoSuchRegistrs();
@@ -162,65 +119,91 @@ public class RegistrsHashMap implements Database{
     }
 
     @Override
-    public void update(int reg, int num, RegistrsTypes type, int value) throws NoSuchRegistrs {
-        switch (type){
-            case WRITEBIT:{
-               Map<Integer,Boolean> map = databaseBool.get(RegistrsTypes.COILS);
-                if (!map.containsKey(reg)) throw new NoSuchRegistrs();
-                if (value==0) map.put(reg,false);
-                else map.put(reg,true);
-                view.dbChanged();
+    public byte[] readAll(RegTypes type){
+        byte[] res=null;
+        int i=0;
+        Map<Integer,Registr> map = database.get(type);
+        if(map.isEmpty()) return null;
+        switch (type) {
+            case SHORTFLOAT: {
                 break;
             }
-            case WRITEINT:{
-                Map<Integer,Integer> map = databaseInt.get(RegistrsTypes.HOLDING);
-                if (!map.containsKey(reg)) throw new NoSuchRegistrs();
-                map.put(reg,value);
-                view.dbChanged();
+            case SCALEDMESURE:  {
+                res = new byte[map.size()*6];
+                for (Map.Entry<Integer,Registr> m : map.entrySet()){
+                    int reg = m.getKey();
+                    int val= m.getValue().getValue();
+                    res[ i ]=int2ByteLo(reg);
+                    res[i+1]=int2ByteHi(reg);
+                    res[i+2]=0;
+                    res[i+3]=int2ByteLo(val);
+                    res[i+4]=int2ByteHi(val);
+                    res[i+5] = 0;
+                    i+=6;
+                }
+                break;
+            }
+            case SINGLEBIT: {
+                res = new byte[map.size()*4];
+                for (Map.Entry<Integer,Registr> m : map.entrySet()){
+                    int reg = m.getKey();
+                    res[i]=int2ByteLo(reg);
+                    res[i+1]=int2ByteHi(reg);
+                    res[i+2]=0;
+                    if (m.getValue().getValue()==1) res[i+3]=1;
+                    res[i+3]=0;
+                    i+=4;
+                }
                 break;
             }
         }
+        return res;
     }
 
     @Override
-    public String getName(int reg, RegistrsTypes type){
-        Map<Integer,String> map = databaseString.get(type);
-        return map.get(reg);
+    public void setValue(int reg, RegTypes type, int value) throws NoSuchRegistrs {
+        Map<Integer,Registr> map = database.get(type);
+        if (!map.containsKey(reg)) throw new NoSuchRegistrs();
+        map.get(reg).setValue(value);
+        view.dbChanged();
     }
 
     @Override
-    public void setName(int reg, RegistrsTypes type, String value) {
-        Map<Integer,String> map = databaseString.get(type);
-        map.put(reg,value);
+    public void setName(int reg, RegTypes type, String value) {
+        Map<Integer,Registr> map = database.get(type);
+        map.get(reg).setName(value);
+    }
+
+    private Map<Integer,Registr> getMap(RegTypes type) {
+        return database.get(type);
     }
 
     @Override
-    public Map getMap(RegistrsTypes type) {
-        switch (type){
-            case DINPUT:
-            case COILS:{
-                return databaseBool.get(type);
-            }
-            case INPUTREG:
-            case HOLDING:
-                return databaseInt.get(type);
-        }
-        return null;
+    public int sizeTable(RegTypes type) {
+        return getMap(type).size();
     }
 
     @Override
-    public void clearCach() {
-        hash.clear();
+    public int read(int reg, RegTypes type) throws NoSuchRegistrs {
+        return getMap(type).get(reg).getValue();
     }
 
     @Override
-    public void putToCach(String key, Message message) {
-         hash.put(key,message);
+    public int readValue(RegTypes type, int row) {
+        TreeMap<Integer,Registr> map = database.get(type);
+        Registr  value = (Registr) map.values().toArray()[row];
+        return value.getValue();
     }
 
     @Override
-    public Message getFromCach(String key) {
-        if (hash.containsKey(key)) return hash.get(key);
-        return null;
+    public String readName(RegTypes type, int row) {
+        TreeMap<Integer,Registr> map = database.get(type);
+        Registr  value = (Registr) map.values().toArray()[row];
+        return value.getName();
+    }
+
+    @Override
+    public int readReg(RegTypes type, int row) {
+        return (int) getMap(type).keySet().toArray()[row];
     }
 }

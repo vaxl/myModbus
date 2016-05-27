@@ -1,22 +1,21 @@
 package message;
 
 import base.MessageStatus;
-import factory.FactorySetup;
-import settings.Text;
+import base.View;
+import static base.View.logView.*;
+import java.util.List;
 
 public class Message  {
-    private Text text = (Text) FactorySetup.getClazz("text.xml");
     private byte[] rx;
     private byte[] tx;
     private MessageStatus status;
     private String textRx;
     private String textTx;
 
-    void setRxDecode(String textRx) {
+    public void setRxDecode(String textRx) {
         this.textRx = textRx;
     }
-
-    void setTxDecode(String textTx) {
+    public void setTxDecode(String textTx) {
         this.textTx = textTx;
     }
 
@@ -27,71 +26,36 @@ public class Message  {
     public byte[] getTx() {
         return tx;
     }
+    public byte[] getRx() {
+        return rx;
+    }
 
-    void setTx(byte[] tx) {
+    public void setTx(byte[] tx) {
+        this.tx = tx;
+    }
+    public void setTx(List<Byte> txx) {
+        byte[] tx = new byte[txx.size()];
+        int i = 0;
+        for (Byte b : txx) {
+            tx[i] = b;
+            i++;
+        }
         this.tx = tx;
     }
 
     public MessageStatus getStatus() {
         return status;
     }
-
     public void setStatus(MessageStatus status) {
         this.status = status;
     }
 
-    byte[] getRx() {
-        return rx;
+    public String getLogTx(View.logView logView){
+        if (logView == DECODE | logView == ONLYERRORS) return textTx;
+        return  MessageLogExec.execute(logView,tx);
     }
-
-    public String getRxString() {
-        StringBuilder str = new StringBuilder(text.RX);
-        for (byte i: rx )
-            str.append(Byte.toUnsignedInt(i)).append(" ");
-        return str.toString();
-    }
-
-    public String getTxString() {
-        StringBuilder str = new StringBuilder(text.TX);
-        for (byte i: tx )
-            str.append(Byte.toUnsignedInt(i)).append(" ");
-        return str.toString();
-    }
-
-    public String getTxHexString() {
-        StringBuilder str = new StringBuilder(text.TX);
-        for (byte i: tx )
-            str.append(Integer.toHexString(Byte.toUnsignedInt(i))).append(" ");
-        return str.toString();
-    }
-
-    public String getRxHexString() {
-        StringBuilder str = new StringBuilder(text.RX);
-        for (byte i: rx )
-            str.append(Integer.toHexString(Byte.toUnsignedInt(i))).append(" ");
-        return str.toString();
-    }
-
-    public String getRxDecode() {
-        return textRx;
-    }
-
-    public String getTxDecode() {
-        return textTx;
-    }
-
-    public String getRxText() {
-        StringBuilder str = new StringBuilder(text.RX);
-        for (byte i: rx )
-            str.append(Character.valueOf((char)i)).append(" ");
-        return str.toString();
-    }
-
-    public String getTxText() {
-        StringBuilder str = new StringBuilder(text.TX);
-        if(tx!=null)
-            for (byte i : tx)
-                str.append(Character.valueOf((char) i)).append(" ");
-        return str.toString();
+    public String getLogRx(View.logView logView){
+        if (logView == DECODE | logView == ONLYERRORS) return textRx;
+        return  MessageLogExec.execute(logView,rx);
     }
 }

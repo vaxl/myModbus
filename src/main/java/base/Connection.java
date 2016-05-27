@@ -9,4 +9,5 @@ public interface Connection extends Runnable{
     boolean init();
     void stop();
     boolean isAlive();
+    void event (byte[] message);
 }

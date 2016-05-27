@@ -1,19 +1,19 @@
 import base.Database;
+import base.MessageStatus;
 import base.Protocol;
-import base.RegistrsTypes;
+import base.RegTypes;
 import database.RegistrsHashMap;
 import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import message.Message;
 import message.MessageParseExec;
-import message.ModbusSlaveTcpParser;
+import message.parsers.ModbusSlaveTcpParser;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
 
 public class testsHelpers {
     @Test
@@ -37,8 +37,8 @@ public class testsHelpers {
     public void testModbusSlaveTcpParser(){
         byte [] before = {1,58,0,0,0,6,1,1,0,100,0,10};
         byte [] before2 = {111,111,0,0,0,6,1,1,0,100,0,10};
-        byte [] res =    {1,58,0,0,0,5,1,1,2,-86,2};
-        byte [] res2 =    {111,111,0,0,0,5,1,1,2,-86,2};
+        byte [] res =    {1  ,58 ,0,0,0,5,1,1,2,85,1};
+        byte [] res2 =   {111,111,0,0,0,5,1,1,2,85,1};
 
         FactorySetup.readXml();
         Database db = new RegistrsHashMap();
@@ -56,21 +56,21 @@ public class testsHelpers {
     public void erorDBTest() throws Exception{
         RegistrsHashMap reg = new RegistrsHashMap();
         reg.create("test");
-        reg.read(0,10, RegistrsTypes.DINPUT);
+        reg.read(0,10, RegTypes.DINPUT);
     }
     @Test
     public void testDbBitsGet() throws Exception{
-        byte [] res =  {-86,2};
+        byte [] res =   {85,1};
         byte [] res2 =  {85,1};
         byte [] res3 =  {0,0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9};
         byte [] test;
         RegistrsHashMap reg = new RegistrsHashMap();
         reg.create("test");
-        test = reg.read(100,10, RegistrsTypes.COILS);
+        test = reg.read(100,10, RegTypes.COILS);
         assertArrayEquals(res,test);
-        test = reg.read(200,10, RegistrsTypes.DINPUT);
+        test = reg.read(200,10, RegTypes.DINPUT);
         assertArrayEquals(res2,test);
-        test = reg.read(300,10, RegistrsTypes.HOLDING);
+        test = reg.read(300,10, RegTypes.HOLDING);
         assertArrayEquals(res3,test);
     }
     @Test
@@ -84,6 +84,46 @@ public class testsHelpers {
         assertTrue(Byte.toUnsignedInt(lo)==197);
         res = LogicHelper.crc16(in1);
         assertTrue(res==40262);
+    }
+    @Test
+    public void testIec104s() {
+        byte[] in = {0x68,0xE,0,0,0,0,0x64,1,6,1,1,0,0,0,0,0x14};
+        byte[] out = {0x68,0xE,0,0,2,0,0x64,1,7,1,1,0,0,0,0,0x14,0x68,0xE,2,0,2,0,0x64,1,10,1,1,0,0,0,0,0x14};
+        FactorySetup.readXml();
+        Database db = new RegistrsHashMap();
+        db.clearDb();
+        db.create("none");
+        FactorySetup.addToFactory("Database",db);
+        Message message = new Message(in);
+        MessageParseExec.execute(Protocol.IEC104Client,message);
+        assertArrayEquals(out,message.getTx());
+    }
+
+    @Test
+    public void testIec104() {
+        byte[] in = {0x68,0xE,0,0,0,0,0x64,1,6,1,1,0,0,0,0,0x14};
+        //byte[] out = {0x68,0xE,0,0,2,0,0x64,1,7,1,1,0,0,0,0,0x14,0x68,0xE,2,0,2,0,0x64,1,10,1,1,0,0,0,0,0x14};
+        FactorySetup.readXml();
+        Database db = new RegistrsHashMap();
+        db.create("test");
+        FactorySetup.addToFactory("Database",db);
+        Message message = new Message(in);
+        MessageParseExec.execute(Protocol.IEC104Client,message);
+    }
+    @Test
+    public void testIec104Event() {
+        byte[] in = {7,LogicHelper.int2ByteHi(200),LogicHelper.int2ByteLo(200)};
+        byte[] out ={0x68,21,0,0,0,0,30,1,3,1,1,0,LogicHelper.int2ByteLo(200),0,0,1};
+        FactorySetup.readXml();
+        Database db = new RegistrsHashMap();
+        db.create("test");
+        FactorySetup.addToFactory("Database",db);
+        Message message = new Message(in);
+        message.setStatus(MessageStatus.SEND);
+        MessageParseExec.execute(Protocol.IEC104Client,message);
+        byte[] arr = new byte[16];
+        System.arraycopy(message.getTx(),0,arr,0,16);
+        assertArrayEquals(out,arr);
     }
 
 }

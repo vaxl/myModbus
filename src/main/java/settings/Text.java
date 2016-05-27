@@ -35,5 +35,8 @@ public class Text {
      public String ERRCRC = "ERRCRC";
      public String CRC = "CRC";
      public String ERRID = "ERRID";
+     public String GI = "GI";
+     public String STARTACT = "STARTACT";
+     public String TESTACT = "TESTACT";
 
 }

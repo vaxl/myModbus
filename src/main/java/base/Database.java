@@ -1,20 +1,21 @@
 package base;
 
+import database.CachMap;
 import exeptions.NoSuchRegistrs;
-import message.Message;
 
-import java.util.Map;
 
 public interface Database {
     void create(String name);
-    byte [] read(int reg,int num,RegistrsTypes type) throws NoSuchRegistrs;
-    void update(int reg, int num, RegistrsTypes type, int value) throws NoSuchRegistrs;
-    Map getMap( RegistrsTypes type);
-    void clearCach();
-    void putToCach(String key, Message message);
-    Message getFromCach(String key);
-    String getName(int reg, RegistrsTypes type);
-    void setName(int reg, RegistrsTypes type, String value);
+    byte [] read(int reg, int num, RegTypes type) throws NoSuchRegistrs;
+    int read(int reg, RegTypes type) throws NoSuchRegistrs;
+    void setValue(int reg, RegTypes type, int value) throws NoSuchRegistrs;
+    void setName(int reg, RegTypes type, String value);
     void clearDb();
-    void add(RegistrsTypes type,int reg,int num);
+    void add(RegTypes type, int reg, int num);
+    byte[] readAll(RegTypes type);
+    int readValue(RegTypes type, int row);
+    String readName(RegTypes type, int row);
+    int readReg(RegTypes type, int row);
+    int sizeTable(RegTypes type);
+    CachMap getCach();
 }

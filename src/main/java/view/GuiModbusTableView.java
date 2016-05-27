@@ -1,40 +1,32 @@
 package view;
 
 import base.Database;
-import base.RegistrsTypes;
+import base.RegTypes;
 import controller.GuiController;
-
+import exeptions.NoSuchRegistrs;
+import factory.FactorySetup;
 import javax.swing.table.AbstractTableModel;
-import java.util.Map;
 
-
-public class GuiModbusTableView<T> extends AbstractTableModel {
+public class GuiModbusTableView extends AbstractTableModel  {
     private final static int ROWNAME =0;
     private final static int ROWREG =1;
     private final static int ROWVAL =2;
-    private Map<Integer,T> map;
-    private RegistrsTypes type;
-    private Database db;
+    private RegTypes type;
+    private Database db = (Database) FactorySetup.getClazz("Database");
     private GuiController controller;
     private final Class[] columnClass;
 
-
-    GuiModbusTableView(Map<Integer,T> map, GuiController controller, Database db, RegistrsTypes type) {
-        this.map = map;
-        this.db = db;
+    GuiModbusTableView(GuiController controller, RegTypes type) {
         this.type = type;
         this.controller = controller;
-        T ob = (T) map.values().toArray()[0];
         columnClass = new Class[] {
-                String.class,Integer.class, ob.getClass()
+                String.class,Integer.class,Integer.class
         };
     }
 
     private final String[] columnNames = new String[] {
             "Name","Reg", "Value"
     };
-
-
 
     @Override
     public String getColumnName(int column) {
@@ -47,7 +39,7 @@ public class GuiModbusTableView<T> extends AbstractTableModel {
     }
     @Override
     public int getRowCount() {
-        return map.size();
+        return db.sizeTable(type);
     }
     @Override
     public int getColumnCount() {
@@ -55,10 +47,9 @@ public class GuiModbusTableView<T> extends AbstractTableModel {
     }
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Object[] keySet = map.keySet().toArray();
-        if (ROWREG == columnIndex) return keySet[rowIndex];
-        if (ROWVAL == columnIndex) return map.get(keySet[rowIndex]);
-        if (ROWNAME == columnIndex) return db.getName((int)keySet[rowIndex],type);
+        if (ROWREG == columnIndex) return db.readReg(type,rowIndex);
+        if (ROWVAL == columnIndex) return db.readValue(type,rowIndex);
+        if (ROWNAME == columnIndex) return db.readName(type,rowIndex);
         return null;
     }
     @Override
@@ -68,13 +59,16 @@ public class GuiModbusTableView<T> extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        Object[] keySet = map.keySet().toArray();
+        int key = db.readReg(type,rowIndex);
         if (ROWVAL == columnIndex){
-        map.put((int)keySet[rowIndex],(T) aValue);
-        controller.cmd("clearCach");
+            try {
+                db.setValue(key,type,(int) aValue);
+            } catch (NoSuchRegistrs ignored) { }
+            controller.clearCach();
+            controller.event(type,key);
         }
         if (ROWNAME == columnIndex) {
-            db.setName((int)keySet[rowIndex],type,(String) aValue);
+            db.setName(key,type,(String) aValue);
         }
     }
 }
