@@ -9,6 +9,7 @@
     <ENTERLOG>Укажите тип лога: </ENTERLOG>
     <ENTERPROTOCOL>Укажите тип протокола: </ENTERPROTOCOL>
     <ENTERCONNECTION>Укажите тип соединения: </ENTERCONNECTION>
+    <ENTERREGS>Укажите настройки регистров </ENTERREGS>
 
     <ERRPACK>Не тот протокол </ERRPACK>
     <ERRFUNC>Неподдерживаемая функция </ERRFUNC>
@@ -16,15 +17,16 @@
     <ERRDB>Нет базы данных</ERRDB>
     <ERRCRC>Ошибка CRC</ERRCRC>
     <ERRID>Не тот id</ERRID>
+    <ERRREGS>Ошибка</ERRREGS>
 
     <RX>Запрос: </RX>
     <TX>Ответ-> </TX>
-    <REGISTR> регистр = </REGISTR>
-    <ADDRES> номер устройства = </ADDRES>
-    <FUNCTION> функция = </FUNCTION>
-    <NUMBER> кол-во =  </NUMBER>
-    <DATA> данные = </DATA>
-    <CRC> crc = </CRC>
+    <REGISTR> регистр  </REGISTR>
+    <ADDRES> номер устройства  </ADDRES>
+    <FUNCTION> функция  </FUNCTION>
+    <NUMBER> кол-во   </NUMBER>
+    <DATA> данные  </DATA>
+    <CRC> crc  </CRC>
     <CMDACKNOL> команда подтвежденна</CMDACKNOL>
 
     <GI>ОБД</GI>
@@ -41,6 +43,10 @@
     <GUICLEAR>Clear</GUICLEAR>
     <GUISEND>Send</GUISEND>
     <GUIDB>DB</GUIDB>
+    <OK>OK</OK>
+    <ADDREGS>AddRegs</ADDREGS>
+    <ADDDB>AddDB</ADDDB>
+    <DB>Database</DB>
 
 
 </class>

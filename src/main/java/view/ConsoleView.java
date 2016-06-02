@@ -1,5 +1,6 @@
 package view;
 
+import base.RegTypes;
 import base.View;
 import base.MessageStatus;
 import message.Message;
@@ -45,22 +46,12 @@ public class ConsoleView implements View {
     }
 
     @Override
-    public void dbChanged() {
+    public void dbChanged(int id, RegTypes regTypes) {
 
     }
 
     @Override
-    public void setLogView(View.logView logView) {
-        this.logView = logView;
-    }
-
-    @Override
-    public String getDbType() {
-        return null;
-    }
-
-    @Override
-    public void createTable() {
+    public void createIdTab() {
 
     }
 }

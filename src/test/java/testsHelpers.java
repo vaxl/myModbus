@@ -42,7 +42,7 @@ public class testsHelpers {
 
         FactorySetup.readXml();
         Database db = new RegistrsHashMap();
-        db.create("test");
+        db.create("test",1);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(before);
         MessageParseExec.execute(Protocol.ModbusSlaveTcp,message);
@@ -55,8 +55,8 @@ public class testsHelpers {
     @Test(expected = NoSuchRegistrs.class)
     public void erorDBTest() throws Exception{
         RegistrsHashMap reg = new RegistrsHashMap();
-        reg.create("test");
-        reg.read(0,10, RegTypes.DINPUT);
+        reg.create("test",1);
+        reg.read(0,10, RegTypes.DINPUT,1);
     }
     @Test
     public void testDbBitsGet() throws Exception{
@@ -65,12 +65,13 @@ public class testsHelpers {
         byte [] res3 =  {0,0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9};
         byte [] test;
         RegistrsHashMap reg = new RegistrsHashMap();
-        reg.create("test");
-        test = reg.read(100,10, RegTypes.COILS);
+        int id =1;
+        reg.create("test",id);
+        test = reg.read(100,10, RegTypes.COILS,id);
         assertArrayEquals(res,test);
-        test = reg.read(200,10, RegTypes.DINPUT);
+        test = reg.read(200,10, RegTypes.DINPUT,id);
         assertArrayEquals(res2,test);
-        test = reg.read(300,10, RegTypes.HOLDING);
+        test = reg.read(300,10, RegTypes.HOLDING,id);
         assertArrayEquals(res3,test);
     }
     @Test
@@ -92,7 +93,7 @@ public class testsHelpers {
         FactorySetup.readXml();
         Database db = new RegistrsHashMap();
         db.clearDb();
-        db.create("none");
+        db.create("none",2);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(in);
         MessageParseExec.execute(Protocol.IEC104Client,message);
@@ -105,18 +106,18 @@ public class testsHelpers {
         //byte[] out = {0x68,0xE,0,0,2,0,0x64,1,7,1,1,0,0,0,0,0x14,0x68,0xE,2,0,2,0,0x64,1,10,1,1,0,0,0,0,0x14};
         FactorySetup.readXml();
         Database db = new RegistrsHashMap();
-        db.create("test");
+        db.create("test",1);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(in);
         MessageParseExec.execute(Protocol.IEC104Client,message);
     }
     @Test
     public void testIec104Event() {
-        byte[] in = {7,LogicHelper.int2ByteHi(200),LogicHelper.int2ByteLo(200)};
+        byte[] in = {7,LogicHelper.int2ByteHi(200),LogicHelper.int2ByteLo(200),1};
         byte[] out ={0x68,21,0,0,0,0,30,1,3,1,1,0,LogicHelper.int2ByteLo(200),0,0,1};
         FactorySetup.readXml();
         Database db = new RegistrsHashMap();
-        db.create("test");
+        db.create("test",1);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(in);
         message.setStatus(MessageStatus.SEND);

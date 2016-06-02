@@ -39,6 +39,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
     private byte[] parsePack(byte[] rx) {
         int reg = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
+        int id = rx[ID];
 
         strRx = new StringBuilder()
                       .append(text.ADDRES)
@@ -58,10 +59,10 @@ public class ModbusSlaveRsParser implements ParseMessage {
         byte[] data;
         try{
             if (rx[FUNC]<5){
-                data = db.read(reg,num, RegTypes.values()[rx[FUNC]]);
+                data = db.read(reg,num, RegTypes.values()[rx[FUNC]],id);
             }
             else{
-                db.setValue(reg, RegTypes.values()[rx[FUNC]],num);
+                db.setValue(reg, RegTypes.values()[rx[FUNC]],num,id);
                 cach.clearCach();
                 strTx = new StringBuilder(text.CMDACKNOL);
                 return rx;

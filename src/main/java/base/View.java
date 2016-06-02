@@ -16,8 +16,6 @@ public interface View {
     void print(String text);
     void print(Message text);
     String readText();
-    void setLogView(logView logView);
-    void dbChanged();
-    String getDbType();
-    void createTable();
+    void dbChanged(int id,RegTypes regTypes);
+    void createIdTab();
 }

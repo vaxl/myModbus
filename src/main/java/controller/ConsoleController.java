@@ -46,11 +46,7 @@ public class ConsoleController {
                 model.stop();
                 break;
             }
-            case "setlog": {
-                if (cmd[1]==null) view.print(text.ENTERLOG);
-                else setLog(cmd[1]);
-                break;
-            }
+
             case "setProtocol":{
                 if (cmd[1]==null) view.print(text.ENTERPROTOCOL);
                 else setup.protocol= cmd[1];
@@ -71,7 +67,4 @@ public class ConsoleController {
         }
     }
 
-    private void setLog(String log){
-        view.setLogView(View.logView.valueOf(log));
-    }
 }

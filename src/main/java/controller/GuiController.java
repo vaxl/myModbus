@@ -42,11 +42,11 @@ public class GuiController {
 
     public void addDb(){
         model.initDatabase();
-        view.createTable();
+        view.createIdTab();
     }
 
-    public void addRegs(String reg, String num, String type){
-        model.addDb(Integer.valueOf(reg),Integer.valueOf(num),RegTypes.values()[Integer.valueOf(type)]);
+    public void addRegs(int reg, int num, int type, int id){
+        model.addDb(reg, num,RegTypes.values()[type], id);
     }
 
     public void writeToPort(String  data){
@@ -74,10 +74,7 @@ public class GuiController {
                 model.stop();
                 break;
             }
-            case "setlog": {
-                setLog(cmd[1]);
-                break;
-            }
+
             case "setProtocol":{
                 setProtocol(cmd[1]);
                 break;
@@ -98,11 +95,7 @@ public class GuiController {
         }
     }
 
-    public void setLog(String log){
-        view.setLogView(View.logView.valueOf(log));
-    }
-
-    public void event(RegTypes type, int key) {
-         model.event(type,key);
+    public void event(RegTypes type, int key,int id) {
+         model.event(type,key, id);
     }
 }

@@ -51,7 +51,8 @@ public class ModbusSlaveTcpParser implements ParseMessage {
     private byte[] parsePack(byte[] rx){
         int dataSize;
         byte [] data;
-
+        int id = rx[ADR];
+        System.out.println(id);
         int startAdr = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
         if (rx[FUNC]==3 | rx[FUNC]==4) dataSize = num* 2;
@@ -75,12 +76,12 @@ public class ModbusSlaveTcpParser implements ParseMessage {
 
         try{
             if (rx[FUNC]==5 | rx[FUNC]==6) {
-                db.setValue(startAdr, RegTypes.values()[rx[FUNC]],num);
+                db.setValue(startAdr, RegTypes.values()[rx[FUNC]],num,id);
                 cach.clearCach();
                 strTx = new StringBuilder(text.CMDACKNOL);
                 return rx;
             }else
-            data = db.read(startAdr,num, RegTypes.values()[rx[FUNC]]);
+            data = db.read(startAdr,num, RegTypes.values()[rx[FUNC]],id);
         }catch (NoSuchRegistrs e) {
             strTx = new StringBuilder(text.ERRREG);
             tx[LENHI] = 0;

@@ -38,5 +38,11 @@ public class Text {
      public String GI = "GI";
      public String STARTACT = "STARTACT";
      public String TESTACT = "TESTACT";
+     public String OK = "OK";
+     public String ENTERREGS = "ENTERREGS";
+     public String ERRREGS = "ERRREGS";
+     public String ADDREGS = "ADDREGS";
+     public String ADDDB = "ADDDB";
+     public String DB = "DB";
 
 }

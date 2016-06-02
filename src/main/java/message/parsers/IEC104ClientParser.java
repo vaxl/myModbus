@@ -45,6 +45,7 @@ public class IEC104ClientParser implements ParseMessage {
     private void sendMesage() {
         int key = twoByte2Int(rx[1],rx[2]);
         RegTypes type = RegTypes.values()[rx[0]];
+        int id = rx[3];
         if (getFunction(type,false)==0) {
             message.setStatus(MessageStatus.NOANSWER);
             message.setRxDecode(text.ERRFUNC);
@@ -52,7 +53,7 @@ public class IEC104ClientParser implements ParseMessage {
         }
         List<Byte> arr = new ArrayList<>(32);
         try {
-            byte [] val = db.read(key,1,type);
+            byte [] val = db.read(key,1,type,id);
             headerGen(arr);
             arr.add(TYPE, getFunction(type,true));
             arr.add(NUM,SINGLE);
@@ -102,9 +103,10 @@ public class IEC104ClientParser implements ParseMessage {
                 byte tx[]=new byte[size];
                 byte [] actConf = actConf();
                 curArr+=rx.length;
+                int id = twoByte2Int(rx[ASDUH],rx[ASDUL]);
 
                 for(RegTypes type : RegTypes.values()) {
-                    byte[] data = getData(type);
+                    byte[] data = getData(type,id);
                     if (data != null) {
                         tx = Arrays.copyOf(tx,tx.length+data.length);
                         System.arraycopy(data, 0, tx, curArr, data.length);
@@ -124,9 +126,9 @@ public class IEC104ClientParser implements ParseMessage {
             default:message.setStatus(MessageStatus.NOANSWER);
         }
     }
-    private byte[] getData(RegTypes type) {
+    private byte[] getData(RegTypes type,int id) {
         if (getFunction(type,false)==0) return null;
-        byte [] data = db.readAll(type);
+        byte [] data = db.readAll(type,id);
         if (data==null) return null;
         int k=1;
         if (type == RegTypes.SINGLEBIT) k=4;

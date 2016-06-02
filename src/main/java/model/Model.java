@@ -30,7 +30,6 @@ public class Model {
         setup = (Setup) FactorySetup.getClazz("setup.xml");
         view = (View) FactorySetup.getClazz("View");
         text = (Text) FactorySetup.getClazz("text.xml");
-        view.setLogView(View.logView.valueOf(setup.logView));
         initDatabase();
     }
     public void refreshConf(){
@@ -49,12 +48,11 @@ public class Model {
             db = new RegistrsHashMap();
             FactorySetup.addToFactory("Database", db);
         }
-        db.create(view.getDbType());
     }
 
-    public void addDb(int reg, int num, RegTypes type){
+    public void addDb(int reg, int num, RegTypes type,int id){
         Database db = (Database) FactorySetup.getClazz("Database");
-        db.add(type,reg,num);
+        db.add(type,reg,num,id);
     }
 
     public void stop(){
@@ -66,8 +64,8 @@ public class Model {
         db.getCach().clearCach();
     }
 
-    public void event(RegTypes type, int key) {
+    public void event(RegTypes type, int key,int id) {
         if(connection==null) return;
-        connection.event(new byte[]{(byte)type.ordinal(), LogicHelper.int2ByteHi(key),LogicHelper.int2ByteLo(key)});
+        connection.event(new byte[]{(byte)type.ordinal(), LogicHelper.int2ByteHi(key),LogicHelper.int2ByteLo(key),(byte)id});
     }
 }
