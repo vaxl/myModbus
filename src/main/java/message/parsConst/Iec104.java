@@ -20,7 +20,6 @@ public final class Iec104 {
 
     public static final byte SERVSIZE = 6;
 
-
     public static final int GI  =100;
 
     public static final byte COTACT =6;
@@ -32,8 +31,4 @@ public final class Iec104 {
     public static final byte STARTWORD = 104;
     public static final byte SINGLE    = 1;
     public static final byte ZERO    = 0;
-
-
-
-
 }

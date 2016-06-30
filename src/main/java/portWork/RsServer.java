@@ -4,6 +4,7 @@ import base.Connection;
 import base.MessageStatus;
 import base.Protocol;
 import base.View;
+import database.Registr;
 import factory.FactorySetup;
 import jssc.SerialPortException;
 import message.Message;
@@ -120,7 +121,7 @@ public class RsServer implements Connection {
     }
 
     @Override
-    public void event(byte[] message) {
+    public void event(Registr reg) {
         //TODO
     }
 }

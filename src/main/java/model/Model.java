@@ -1,6 +1,7 @@
 package model;
 
 import base.*;
+import database.Registr;
 import database.RegistrsHashMap;
 import factory.FactorySetup;
 import helpers.LogicHelper;
@@ -50,9 +51,11 @@ public class Model {
         }
     }
 
-    public void addDb(int reg, int num, RegTypes type,int id){
+    public void addDb(Registr reg, int num){
         Database db = (Database) FactorySetup.getClazz("Database");
-        db.add(type,reg,num,id);
+        for (int i = reg.getReg(); i <reg.getReg()+num ; i++) {
+            db.add(new Registr(reg.getId(),i,reg.getType()));
+        }
     }
 
     public void stop(){
@@ -64,8 +67,8 @@ public class Model {
         db.getCach().clearCach();
     }
 
-    public void event(RegTypes type, int key,int id) {
+    public void event(Registr reg) {
         if(connection==null) return;
-        connection.event(new byte[]{(byte)type.ordinal(), LogicHelper.int2ByteHi(key),LogicHelper.int2ByteLo(key),(byte)id});
+        connection.event(reg);
     }
 }

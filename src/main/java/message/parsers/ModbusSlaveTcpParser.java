@@ -2,8 +2,8 @@ package message.parsers;
 
 import base.*;
 import database.CachMap;
+import database.Registr;
 import database.RegistrsHashMap;
-import exeptions.NoSuchRegistrs;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -74,24 +74,19 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         tx[HEADLO] = rx[HEADLO];
         tx[ADR] = rx[ADR];
 
-        try{
-            if (rx[FUNC]==5 | rx[FUNC]==6) {
-                db.setValue(startAdr, RegTypes.values()[rx[FUNC]],num,id);
+        if (rx[FUNC]==5 | rx[FUNC]==6) {
+            Registr regist = db.readReg(startAdr,RegTypes.values()[rx[FUNC]],id);
+            if(regist!=null) {
+                regist.setValue(num);
+                db.update(regist);
                 cach.clearCach();
                 strTx = new StringBuilder(text.CMDACKNOL);
-                return rx;
-            }else
-            data = db.read(startAdr,num, RegTypes.values()[rx[FUNC]],id);
-        }catch (NoSuchRegistrs e) {
-            strTx = new StringBuilder(text.ERRREG);
-            tx[LENHI] = 0;
-            tx[LENLO] = 3;
-            tx[FUNC] = (byte) (rx[FUNC] | 128);
-            tx[8] = 2 ;
-            status = MessageStatus.ERR;
-            return Arrays.copyOf(tx,9);
+                 return rx;
+            }else return errorMsg(tx,rx);
+        }else {
+            data =ParserHelper.regsToByteData(startAdr,num,db.getMap(RegTypes.values()[rx[FUNC]],id));
+            if (data == null) return errorMsg(tx, rx);
         }
-
         tx[LENHI] = int2ByteHi(3+dataSize);
         tx[LENLO] = int2ByteLo(3+dataSize);
         tx[FUNC] = rx[FUNC];
@@ -135,5 +130,15 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         for (int i = 0; i < number; i++)
             str.delete(0,str.indexOf(" ")+1);
         return str.toString();
+    }
+
+    private byte[] errorMsg(byte[] tx,byte[] rx){
+        strTx = new StringBuilder(text.ERRREG);
+        tx[LENHI] = 0;
+        tx[LENLO] = 3;
+        tx[FUNC] = (byte) (rx[FUNC] | 128);
+        tx[8] = 2 ;
+        status = MessageStatus.ERR;
+        return Arrays.copyOf(tx,9);
     }
 }

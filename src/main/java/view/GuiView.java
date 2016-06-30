@@ -2,6 +2,7 @@ package view;
 
 import base.*;
 import controller.GuiController;
+import database.Registr;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -227,7 +228,7 @@ public class GuiView implements View {
 
         ok.addActionListener(e -> {
             try {
-                controller.addRegs(Integer.valueOf(reg.getText()), Integer.valueOf(num.getText()), types.getSelectedIndex(),Integer.valueOf(id.getText()));
+                controller.addRegs(new Registr(Integer.valueOf(id.getText()), Integer.valueOf(reg.getText()),RegTypes.values()[types.getSelectedIndex()]), Integer.valueOf(num.getText()));
                 startPaintTable(Integer.valueOf(id.getText()));
                 frame.setVisible(false);
             }catch (Exception ex) {error.setText(text.ERRREGS);}

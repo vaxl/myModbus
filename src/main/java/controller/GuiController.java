@@ -2,6 +2,7 @@ package controller;
 
 import base.RegTypes;
 import base.View;
+import database.Registr;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import model.Model;
@@ -45,8 +46,8 @@ public class GuiController {
         view.createIdTab();
     }
 
-    public void addRegs(int reg, int num, int type, int id){
-        model.addDb(reg, num,RegTypes.values()[type], id);
+    public void addRegs(Registr reg, int num){
+        model.addDb(reg, num);
     }
 
     public void writeToPort(String  data){
@@ -95,7 +96,7 @@ public class GuiController {
         }
     }
 
-    public void event(RegTypes type, int key,int id) {
-         model.event(type,key, id);
+    public void event(Registr reg) {
+         model.event(reg);
     }
 }

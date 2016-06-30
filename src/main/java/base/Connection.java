@@ -1,5 +1,6 @@
 package base;
 
+import database.Registr;
 import message.Message;
 
 public interface Connection extends Runnable{
@@ -9,5 +10,5 @@ public interface Connection extends Runnable{
     boolean init();
     void stop();
     boolean isAlive();
-    void event (byte[] message);
+    void event (Registr reg);
 }

@@ -1,16 +1,14 @@
 package message.parsers;
 
 import base.*;
-import exeptions.NoSuchRegistrs;
+import database.Registr;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
+import static base.RegTypes.*;
 import static base.View.logView.*;
 import static message.parsConst.Iec104.*;
 import static helpers.LogicHelper.*;
@@ -52,8 +50,8 @@ public class IEC104ClientParser implements ParseMessage {
             return;
         }
         List<Byte> arr = new ArrayList<>(32);
-        try {
-            byte [] val = db.read(key,1,type,id);
+            byte [] val = ParserHelper.regsToByteData(key,1,db.getMap(type,id));
+            if (val==null) return;
             headerGen(arr);
             arr.add(TYPE, getFunction(type,true));
             arr.add(NUM,SINGLE);
@@ -66,15 +64,14 @@ public class IEC104ClientParser implements ParseMessage {
             arr.add(REG0, ZERO);
             for (int i = val.length-1,j=VAL; i >=0 ; i--,j++)
                 arr.add(j,val[i]);
-            if (type!= RegTypes.SINGLEBIT)  arr.add(ZERO);  // признак качества заглушка
+            if (type!= SINGLEBIT)  arr.add(ZERO);  // признак качества заглушка
             time(arr);
             arr.set(LEN, (byte) (arr.size()-2));
             message.setTx(arr);
             message.setTxDecode(text.REGISTR + key + text.FUNCTION + type.name());
             countNs+=2;
-        } catch (NoSuchRegistrs ignored) {
-        }
     }
+
     private void parseServiceM(){
         Message service = cash.get(message.getLogRx(ORIGINAL));
         if (service!=null){
@@ -128,10 +125,10 @@ public class IEC104ClientParser implements ParseMessage {
     }
     private byte[] getData(RegTypes type,int id) {
         if (getFunction(type,false)==0) return null;
-        byte [] data = db.readAll(type,id);
+        byte [] data = convertToBytes(db.readAll(type,id));
         if (data==null) return null;
         int k=1;
-        if (type == RegTypes.SINGLEBIT) k=4;
+        if (type == SINGLEBIT) k=4;
         if (type == RegTypes.SCALEDMESURE) k=6;
         if (type == RegTypes.SHORTFLOAT) k=8;
         int size = data.length;
@@ -232,5 +229,45 @@ public class IEC104ClientParser implements ParseMessage {
         m2.setRxDecode(text.TESTACT);
         m2.setTxDecode(text.CMDACKNOL);
         cash.put(m2.getLogRx(ORIGINAL),m2);
+    }
+
+    private byte[] convertToBytes(Collection<Registr> regs){
+        byte[] res=null;
+        int i=0;
+        if(regs.isEmpty()) return null;
+        switch (((Registr) regs.toArray()[0]).getType()) {
+            case SHORTFLOAT: {
+                break;
+            }
+            case SCALEDMESURE:  {
+                res = new byte[regs.size()*6];
+                for (Registr r : regs){
+                    int reg = r.getReg();
+                    int val= r.getValue();
+                    res[ i ]=int2ByteLo(reg);
+                    res[i+1]=int2ByteHi(reg);
+                    res[i+2]=0;
+                    res[i+3]=int2ByteLo(val);
+                    res[i+4]=int2ByteHi(val);
+                    res[i+5] = 0;
+                    i+=6;
+                }
+                break;
+            }
+            case SINGLEBIT: {
+                res = new byte[regs.size()*4];
+                for (Registr r : regs){
+                    int reg = r.getReg();
+                    res[i]=int2ByteLo(reg);
+                    res[i+1]=int2ByteHi(reg);
+                    res[i+2]=0;
+                    if (r.getValue()==1) res[i+3]=1;
+                    res[i+3]=0;
+                    i+=4;
+                }
+                break;
+            }
+        }
+        return res;
     }
 }

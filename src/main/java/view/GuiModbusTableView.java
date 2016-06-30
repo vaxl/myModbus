@@ -3,9 +3,11 @@ package view;
 import base.Database;
 import base.RegTypes;
 import controller.GuiController;
-import exeptions.NoSuchRegistrs;
+import database.Registr;
 import factory.FactorySetup;
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiModbusTableView extends AbstractTableModel  {
     private final static int ROWNAME =0;
@@ -49,9 +51,10 @@ public class GuiModbusTableView extends AbstractTableModel  {
     }
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        if (ROWREG == columnIndex) return db.readReg(type,rowIndex,id);
-        if (ROWVAL == columnIndex) return db.readValue(type,rowIndex,id);
-        if (ROWNAME == columnIndex) return db.readName(type,rowIndex,id);
+        Registr reg = (Registr) db.readAll(type,id).toArray()[rowIndex];
+        if (ROWREG == columnIndex) return reg.getReg();
+        if (ROWVAL == columnIndex) return reg.getValue();
+        if (ROWNAME == columnIndex) return reg.getName();
         return null;
     }
     @Override
@@ -61,16 +64,17 @@ public class GuiModbusTableView extends AbstractTableModel  {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        int key = db.readReg(type,rowIndex,id);
+        Registr key = (Registr) db.readAll(type,id).toArray()[rowIndex];
         if (ROWVAL == columnIndex){
-            try {
-                db.setValue(key,type,(int) aValue,id);
-            } catch (NoSuchRegistrs ignored) { }
+
+            key.setValue((int) aValue);
+            db.update(key);
             controller.clearCach();
-            controller.event(type,key,id);
+            if (type.ordinal()>6 || type.ordinal()<10 ) controller.event(key);
         }
         if (ROWNAME == columnIndex) {
-            db.setName(key,type,(String) aValue,id);
+            key.setName((String) aValue);
+            db.update(key);
         }
     }
 }

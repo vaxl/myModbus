@@ -1,6 +1,7 @@
 package portWork;
 
 import base.*;
+import database.Registr;
 import factory.FactorySetup;
 import message.Message;
 import message.MessageParseExec;
@@ -11,6 +12,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
+import static helpers.LogicHelper.*;
 
 public class TcpServer implements Connection {
     private Text text;
@@ -22,7 +24,7 @@ public class TcpServer implements Connection {
     private OutputStream out;
     private AtomicBoolean run   = new AtomicBoolean();
     private AtomicBoolean event = new AtomicBoolean();
-    private byte[] mes;
+    private Registr regEvent;
 
     public TcpServer() {
         text = (Text) FactorySetup.getClazz("text.xml");
@@ -43,7 +45,8 @@ public class TcpServer implements Connection {
                     return message;
                 } else {
                     if (event.get()){
-                        Message message = new Message(mes);
+                        Message message = new Message(new byte[] {int2ByteLo(regEvent.getType().ordinal()),int2ByteHi(regEvent.getReg()),
+                            int2ByteLo(regEvent.getReg()),int2ByteLo(regEvent.getId())});
                         message.setStatus(MessageStatus.SEND);
                         return message;
                     }
@@ -130,8 +133,8 @@ public class TcpServer implements Connection {
     }
 
     @Override
-    public void event (byte[] message) {
-        mes = message;
+    public void event (Registr reg) {
+        regEvent = reg;
         event.set(true);
     }
 }
