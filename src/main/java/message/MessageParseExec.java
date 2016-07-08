@@ -19,6 +19,6 @@ public class MessageParseExec {
 
 
     public static  void execute(Protocol operation, Message message) {
-        commandMap.get(operation).execute(message);
+         commandMap.get(operation).execute(message);
     }
 }

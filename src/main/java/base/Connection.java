@@ -1,6 +1,6 @@
 package base;
 
-import database.Registr;
+import database.Entity.Registr;
 import message.Message;
 
 public interface Connection extends Runnable{

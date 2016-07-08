@@ -2,7 +2,9 @@ package message.parsers;
 
 import base.*;
 import database.CachMap;
-import database.Registr;
+import database.Db;
+import database.Entity.BaseReg;
+import database.Entity.Registr;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -17,11 +19,11 @@ public class ModbusSlaveRsParser implements ParseMessage {
     private StringBuilder strRx;
     private StringBuilder strTx;
     private MessageStatus status;
-    private Database db = (Database) FactorySetup.getClazz("Database");
+    private Database db = Db.getInstance();
     private View view = (View) FactorySetup.getClazz("View");
     private Text text = (Text) FactorySetup.getClazz("text.xml");
     private Setup setup = (Setup) FactorySetup.getClazz("setup.xml");
-    private CachMap cach = db.getCach();
+    private CachMap cach = CachMap.getInstance();
 
     @Override
     public void execute(Message message) {
@@ -41,6 +43,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
         int reg = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
         int id = rx[ID];
+        BaseReg baseReg = new BaseReg(id, RegTypes.values()[rx[FUNC]]);
 
         strRx = new StringBuilder()
                       .append(text.ADDRES)
@@ -59,11 +62,11 @@ public class ModbusSlaveRsParser implements ParseMessage {
 
         byte[] data;
         if (rx[FUNC]<5){
-            data =ParserHelper.regsToByteData(reg,num,db.getMap(RegTypes.values()[rx[FUNC]],id));
+            data =ParserHelper.regsToByteData(reg,num,db.readAll(baseReg));
             if (data==null) return errorMsg(rx);
         }
         else{
-            Registr regCurrent = db.readReg(reg, RegTypes.values()[rx[FUNC]],id);
+            Registr regCurrent = db.readReg(reg,baseReg);
             if(regCurrent!=null) {
                 regCurrent.setValue(num);
                 db.update(regCurrent);

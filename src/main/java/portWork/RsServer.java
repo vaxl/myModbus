@@ -4,7 +4,7 @@ import base.Connection;
 import base.MessageStatus;
 import base.Protocol;
 import base.View;
-import database.Registr;
+import database.Entity.Registr;
 import factory.FactorySetup;
 import jssc.SerialPortException;
 import message.Message;

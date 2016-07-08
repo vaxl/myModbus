@@ -2,7 +2,9 @@ package view;
 
 import base.*;
 import controller.GuiController;
-import database.Registr;
+import database.Db;
+import database.Entity.BaseReg;
+import database.Entity.Registr;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -32,7 +34,7 @@ public class GuiView implements View {
     }
 
     public void init(){
-        db = (Database) FactorySetup.getClazz("Database");
+        db = Db.getInstance();
         JPanel panel = new JPanel();
         JToolBar toolBarLog = new JToolBar();
         toolBarLog.add(new JScrollPane(messages));
@@ -242,7 +244,7 @@ public class GuiView implements View {
             boolean newTab = !tabModels.containsKey(id);
             tabModels.putIfAbsent(id, new HashMap<>());
             for (RegTypes r : RegTypes.values()) {
-                if (db.sizeTable(r, id) == 0) continue;
+                if (db.sizeTable(new BaseReg(id,r)) == 0) continue;
                 if (tabModels.get(id).get(r)==null) {
                     GuiModbusTableView model = new GuiModbusTableView(controller, r, id);
                     tabModels.get(id).put(r, model);

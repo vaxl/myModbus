@@ -1,7 +1,7 @@
 package portWork;
 
 import base.*;
-import database.Registr;
+import database.Entity.Registr;
 import factory.FactorySetup;
 import message.Message;
 import message.MessageParseExec;

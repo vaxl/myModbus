@@ -1,7 +1,9 @@
 package message.parsers;
 
 import base.*;
-import database.Registr;
+import database.Db;
+import database.Entity.BaseReg;
+import database.Entity.Registr;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -20,7 +22,7 @@ public class IEC104ClientParser implements ParseMessage {
     private int countNr=0;
     private Text text = (Text) FactorySetup.getClazz("text.xml");
     private Setup setup = (Setup) FactorySetup.getClazz("setup.xml");
-    private Database db = (Database) FactorySetup.getClazz("Database");
+    private Database db = Db.getInstance();
     private HashMap<String,Message> cash = new HashMap<>();
 
     public IEC104ClientParser() {
@@ -44,13 +46,14 @@ public class IEC104ClientParser implements ParseMessage {
         int key = twoByte2Int(rx[1],rx[2]);
         RegTypes type = RegTypes.values()[rx[0]];
         int id = rx[3];
+        BaseReg baseReg = new BaseReg(id,type);
         if (getFunction(type,false)==0) {
             message.setStatus(MessageStatus.NOANSWER);
             message.setRxDecode(text.ERRFUNC);
             return;
         }
         List<Byte> arr = new ArrayList<>(32);
-            byte [] val = ParserHelper.regsToByteData(key,1,db.getMap(type,id));
+            byte [] val = ParserHelper.regsToByteData(key,1,db.readAll(baseReg));
             if (val==null) return;
             headerGen(arr);
             arr.add(TYPE, getFunction(type,true));
@@ -103,7 +106,7 @@ public class IEC104ClientParser implements ParseMessage {
                 int id = twoByte2Int(rx[ASDUH],rx[ASDUL]);
 
                 for(RegTypes type : RegTypes.values()) {
-                    byte[] data = getData(type,id);
+                    byte[] data = getData(new BaseReg(id,type));
                     if (data != null) {
                         tx = Arrays.copyOf(tx,tx.length+data.length);
                         System.arraycopy(data, 0, tx, curArr, data.length);
@@ -123,9 +126,10 @@ public class IEC104ClientParser implements ParseMessage {
             default:message.setStatus(MessageStatus.NOANSWER);
         }
     }
-    private byte[] getData(RegTypes type,int id) {
+    private byte[] getData(BaseReg baseReg) {
+        RegTypes type = baseReg.getType();
         if (getFunction(type,false)==0) return null;
-        byte [] data = convertToBytes(db.readAll(type,id));
+        byte [] data = convertToBytes(db.readAll(baseReg));
         if (data==null) return null;
         int k=1;
         if (type == SINGLEBIT) k=4;

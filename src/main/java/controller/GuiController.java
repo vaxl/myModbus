@@ -1,8 +1,7 @@
 package controller;
 
-import base.RegTypes;
 import base.View;
-import database.Registr;
+import database.Entity.Registr;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import model.Model;
@@ -42,7 +41,6 @@ public class GuiController {
     }
 
     public void addDb(){
-        model.initDatabase();
         view.createIdTab();
     }
 

@@ -1,8 +1,8 @@
-package database;
+package database.Entity;
 
 import base.RegTypes;
 
-public class Registr {
+public class Registr extends BaseReg {
     private String name;
     private int value;
     private int reg;
@@ -10,6 +10,7 @@ public class Registr {
     private int id;
 
     public Registr(int id,int reg, RegTypes type) {
+        super(id,type);
         this.reg = reg;
         this.type = type;
         this.value = 0;
@@ -18,6 +19,7 @@ public class Registr {
     }
 
     public Registr(int id,int reg, RegTypes type, int value,String name) {
+        super(id,type);
         this.name = name;
         this.value = value;
         this.reg = reg;
@@ -26,6 +28,7 @@ public class Registr {
     }
 
     public Registr(int id,int reg, RegTypes type,int value) {
+        super(id,type);
         this.value = value;
         this.reg = reg;
         this.type = type;

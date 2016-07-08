@@ -3,7 +3,6 @@ package message.parsers;
 import base.MessageStatus;
 import base.ParseMessage;
 import message.Message;
-
 import static base.View.logView.ORIGINAL;
 
 public class NoParser implements ParseMessage {

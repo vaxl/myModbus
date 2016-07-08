@@ -1,8 +1,7 @@
 import base.Database;
 import base.MessageStatus;
 import base.Protocol;
-import base.RegTypes;
-import database.RegistrsHashMap;
+import database.HashMapDB;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import message.Message;
@@ -25,7 +24,7 @@ public class testsHelpers {
     @Test
     public void testEatString(){
         FactorySetup factorySetup = new FactorySetup();
-        FactorySetup.addToFactory("Database",new RegistrsHashMap());
+        FactorySetup.addToFactory("Database",new HashMapDB());
         ModbusSlaveTcpParser mod = new ModbusSlaveTcpParser();
         String in = "1 2 3 4 5 6 7 8";
         String out = "4 5 6 7 8";
@@ -40,7 +39,7 @@ public class testsHelpers {
         byte [] res2 =   {111,111,0,0,0,5,1,1,2,85,1};
 
         FactorySetup.readXml();
-        Database db = new RegistrsHashMap();
+        Database db = new HashMapDB();
         db.create("test",1);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(before);
@@ -53,7 +52,7 @@ public class testsHelpers {
     }
     @Test()
     public void erorDBTest() throws Exception{
-        RegistrsHashMap reg = new RegistrsHashMap();
+        HashMapDB reg = new HashMapDB();
         reg.create("test",1);
         //reg.read(0,10, RegTypes.DINPUT,1);
     }
@@ -63,7 +62,7 @@ public class testsHelpers {
         byte [] res2 =  {85,1};
         byte [] res3 =  {0,0,0,1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9};
         byte [] test;
-        RegistrsHashMap reg = new RegistrsHashMap();
+        HashMapDB reg = new HashMapDB();
         int id =1;
         reg.create("test",id);
 /*        //test = reg.read(100,10, RegTypes.COILS,id);
@@ -90,7 +89,7 @@ public class testsHelpers {
         byte[] in = {0x68,0xE,0,0,0,0,0x64,1,6,1,1,0,0,0,0,0x14};
         byte[] out = {0x68,0xE,0,0,2,0,0x64,1,7,1,1,0,0,0,0,0x14,0x68,0xE,2,0,2,0,0x64,1,10,1,1,0,0,0,0,0x14};
         FactorySetup.readXml();
-        Database db = new RegistrsHashMap();
+        Database db = new HashMapDB();
         db.clearDb();
         db.create("none",2);
         FactorySetup.addToFactory("Database",db);
@@ -104,7 +103,7 @@ public class testsHelpers {
         byte[] in = {0x68,0xE,0,0,0,0,0x64,1,6,1,1,0,0,0,0,0x14};
         //byte[] out = {0x68,0xE,0,0,2,0,0x64,1,7,1,1,0,0,0,0,0x14,0x68,0xE,2,0,2,0,0x64,1,10,1,1,0,0,0,0,0x14};
         FactorySetup.readXml();
-        Database db = new RegistrsHashMap();
+        Database db = new HashMapDB();
         db.create("test",1);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(in);
@@ -115,7 +114,7 @@ public class testsHelpers {
         byte[] in = {7,LogicHelper.int2ByteHi(200),LogicHelper.int2ByteLo(200),1};
         byte[] out ={0x68,21,0,0,0,0,30,1,3,1,1,0,LogicHelper.int2ByteLo(200),0,0,1};
         FactorySetup.readXml();
-        Database db = new RegistrsHashMap();
+        Database db = new HashMapDB();
         db.create("test",1);
         FactorySetup.addToFactory("Database",db);
         Message message = new Message(in);

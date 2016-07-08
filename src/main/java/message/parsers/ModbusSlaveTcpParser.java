@@ -2,8 +2,10 @@ package message.parsers;
 
 import base.*;
 import database.CachMap;
-import database.Registr;
-import database.RegistrsHashMap;
+import database.Db;
+import database.Entity.BaseReg;
+import database.Entity.Registr;
+import database.HashMapDB;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -15,14 +17,15 @@ import static helpers.LogicHelper.*;
 public class ModbusSlaveTcpParser implements ParseMessage {
     private View messageWork = (View) FactorySetup.getClazz("View");
     private Text text = (Text) FactorySetup.getClazz("text.xml");
-    private Database db = (Database) FactorySetup.getClazz("Database");
+    private Database db = Db.getInstance();
+    private CachMap cach = CachMap.getInstance();
     private StringBuilder strRx;
     private StringBuilder strTx;
     private MessageStatus status;
-    private CachMap cach = db.getCach();
+
     @Override
     public void execute(Message message) {
-        if (db==null) db = new RegistrsHashMap();
+        if (db==null) db = new HashMapDB();
         byte[] rx = message.getRx();
         if (isRightPack(rx)) {
             if (!fromHash(message)) {
@@ -52,13 +55,13 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         int dataSize;
         byte [] data;
         int id = rx[ADR];
-        System.out.println(id);
         int startAdr = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
         if (rx[FUNC]==3 | rx[FUNC]==4) dataSize = num* 2;
         else if (rx[FUNC]==5 | rx[FUNC]==6) dataSize=rx.length-9;
             else  dataSize = bitInByte(num);
         byte [] tx = new byte[dataSize + 9];
+        BaseReg baseReg = new BaseReg(id,RegTypes.values()[rx[FUNC]]);
 
         strRx = new StringBuilder(text.ADDRES)
                           .append(rx[ADR])
@@ -75,7 +78,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
         tx[ADR] = rx[ADR];
 
         if (rx[FUNC]==5 | rx[FUNC]==6) {
-            Registr regist = db.readReg(startAdr,RegTypes.values()[rx[FUNC]],id);
+            Registr regist = db.readReg(startAdr,baseReg);
             if(regist!=null) {
                 regist.setValue(num);
                 db.update(regist);
@@ -84,7 +87,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
                  return rx;
             }else return errorMsg(tx,rx);
         }else {
-            data =ParserHelper.regsToByteData(startAdr,num,db.getMap(RegTypes.values()[rx[FUNC]],id));
+            data =ParserHelper.regsToByteData(startAdr,num,db.readAll(baseReg));
             if (data == null) return errorMsg(tx, rx);
         }
         tx[LENHI] = int2ByteHi(3+dataSize);
@@ -113,7 +116,7 @@ public class ModbusSlaveTcpParser implements ParseMessage {
             tx[0] = message.getRx()[0];
             tx[1] = message.getRx()[1];
             message.setRxDecode(mesHash.getLogRx(DECODE));
-            message.setTxDecode(mesHash.getLogRx(DECODE));
+            message.setTxDecode(mesHash.getLogTx(DECODE));
             message.setTx(tx);
             message.setStatus(mesHash.getStatus());
             return true;

@@ -1,10 +1,10 @@
 package model;
 
 import base.*;
-import database.Registr;
-import database.RegistrsHashMap;
+import database.CachMap;
+import database.Db;
+import database.Entity.Registr;
 import factory.FactorySetup;
-import helpers.LogicHelper;
 import helpers.ReflectionHelper;
 import settings.Setup;
 import settings.Text;
@@ -31,7 +31,6 @@ public class Model {
         setup = (Setup) FactorySetup.getClazz("setup.xml");
         view = (View) FactorySetup.getClazz("View");
         text = (Text) FactorySetup.getClazz("text.xml");
-        initDatabase();
     }
     public void refreshConf(){
         FactorySetup.readXml("setup.xml");
@@ -43,19 +42,9 @@ public class Model {
             connection.write(message);
     }
 
-    public void initDatabase(){
-        Database db = (Database) FactorySetup.getClazz("Database");
-        if(db==null){
-            db = new RegistrsHashMap();
-            FactorySetup.addToFactory("Database", db);
-        }
-    }
-
     public void addDb(Registr reg, int num){
-        Database db = (Database) FactorySetup.getClazz("Database");
-        for (int i = reg.getReg(); i <reg.getReg()+num ; i++) {
-            db.add(new Registr(reg.getId(),i,reg.getType()));
-        }
+        for (int i = reg.getReg(); i <reg.getReg()+num ; i++)
+            Db.getInstance().add(new Registr(reg.getId(),i,reg.getType()));
     }
 
     public void stop(){
@@ -63,8 +52,7 @@ public class Model {
     }
 
     public void clearCach() {
-        Database db = (Database) FactorySetup.getClazz("Database");
-        db.getCach().clearCach();
+        CachMap.getInstance().clearCach();
     }
 
     public void event(Registr reg) {
