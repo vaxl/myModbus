@@ -1,16 +1,15 @@
 package base;
 
-import database.Entity.BaseReg;
+import database.Entity.TableRegs;
 import database.Entity.Registr;
 import java.util.Collection;
 
 public interface Database {
     void create(String name,int id);
     void clearDb();
-    int sizeTable(BaseReg baseReg);
-
+    int sizeTable(TableRegs tableRegs);
     boolean update(Registr reg);
     void add(Registr reg);
-    Registr readReg(int reg, BaseReg baseReg);
-    Collection<Registr> readAll(BaseReg baseReg);
+    Registr readReg(Registr baseReg);
+    Collection<Registr> readAll(TableRegs tableRegs);
 }

@@ -1,7 +1,6 @@
 package controller;
 
 
-import base.View;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import model.Model;
@@ -22,8 +21,8 @@ public class ConsoleController {
     public static void main(String[] args) {
         ConsoleController controller = new ConsoleController();
         controller.model.init();
-        controller.text = (Text) FactorySetup.getClazz("text.xml");
-        controller.setup = (Setup) FactorySetup.getClazz("setup.xml");
+        controller.text = Text.getInstance();
+        controller.setup = Setup.getInstance();
 
         while(true) {
             controller.cmd(controller.view.readText());
@@ -34,7 +33,7 @@ public class ConsoleController {
     private void cmd(String msg){
         String [] cmd = msg.split(" ");
         switch (cmd[0]) {
-            case "run": {
+            case "start": {
                 model.start();
                 break;
             }
@@ -47,12 +46,12 @@ public class ConsoleController {
                 break;
             }
 
-            case "setProtocol":{
+            case "protocol":{
                 if (cmd[1]==null) view.print(text.ENTERPROTOCOL);
                 else setup.protocol= cmd[1];
                 break;
             }
-            case "setConnection": {
+            case "connection": {
                 if (cmd[1] == null) view.print(text.ENTERPROTOCOL);
                 else setup.connection = cmd[1];
                 break;

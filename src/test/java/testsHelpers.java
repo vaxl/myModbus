@@ -22,7 +22,7 @@ public class testsHelpers {
         assertEquals(7,LogicHelper.bitInByte(52));
     }
     @Test
-    public void testEatString(){
+    public void testEatString() {
         FactorySetup factorySetup = new FactorySetup();
         FactorySetup.addToFactory("Database",new HashMapDB());
         ModbusSlaveTcpParser mod = new ModbusSlaveTcpParser();
@@ -30,6 +30,13 @@ public class testsHelpers {
         String out = "4 5 6 7 8";
         String res = mod.eatStringSpace(in,3);
         assertTrue(res.equals(out));
+/*        try {
+            InputStream x = new FileInputStream("");
+            BufferedReader xy = new BufferedReader(new InputStreamReader(x));
+
+            System.out.println(xy.readLine());
+
+        }catch (Exception ignore){}*/
     }
     @Test
     public void testModbusSlaveTcpParser(){

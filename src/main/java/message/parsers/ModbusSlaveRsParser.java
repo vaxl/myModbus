@@ -3,8 +3,8 @@ package message.parsers;
 import base.*;
 import database.CachMap;
 import database.Db;
-import database.Entity.BaseReg;
 import database.Entity.Registr;
+import database.Entity.Registrs;
 import factory.FactorySetup;
 import message.Message;
 import settings.*;
@@ -21,9 +21,10 @@ public class ModbusSlaveRsParser implements ParseMessage {
     private MessageStatus status;
     private Database db = Db.getInstance();
     private View view = (View) FactorySetup.getClazz("View");
-    private Text text = (Text) FactorySetup.getClazz("text.xml");
-    private Setup setup = (Setup) FactorySetup.getClazz("setup.xml");
+    private Text text = Text.getInstance();
+    private Setup setup = Setup.getInstance();
     private CachMap cach = CachMap.getInstance();
+    private Registrs baseReg;
 
     @Override
     public void execute(Message message) {
@@ -31,7 +32,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
         if (isRightPack(rx)) {
             if (!fromHash(message)) {
                 message.setTx(parsePack(rx));
-                message.setRxDecode(strRx.toString());
+                message.setRegs(baseReg);
                 message.setTxDecode(strTx.toString());
                 message.setStatus(status);
                 cach.putToCach(message.getLogRx(ORIGINAL),message);
@@ -43,15 +44,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
         int reg = twoByte2Int(rx[REGHI],rx[REGLO]);
         int num = twoByte2Int(rx[NUMHI],rx[NUMLO]);
         int id = rx[ID];
-        BaseReg baseReg = new BaseReg(id, RegTypes.values()[rx[FUNC]]);
-
-        strRx = new StringBuilder()
-                      .append(text.ADDRES)
-                      .append(rx[ID])
-                      .append(text.FUNCTION)
-                      .append(rx[FUNC])
-                      .append(text.REGISTR)
-                      .append(reg);
+        baseReg = new Registrs(id,reg, RegTypes.values()[rx[FUNC]],num);
 
         if (rx[FUNC]<5)  strRx.append(text.NUMBER).append(num);
             else strRx.append(text.DATA).append(num);
@@ -66,7 +59,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
             if (data==null) return errorMsg(rx);
         }
         else{
-            Registr regCurrent = db.readReg(reg,baseReg);
+            Registr regCurrent = db.readReg(baseReg);
             if(regCurrent!=null) {
                 regCurrent.setValue(num);
                 db.update(regCurrent);
@@ -132,7 +125,7 @@ public class ModbusSlaveRsParser implements ParseMessage {
         if (message.getRx()[FUNC]>4) return false;
         Message mesHash = cach.getFromCach(message.getLogRx(ORIGINAL));
         if (mesHash!=null) {
-            message.setRxDecode(mesHash.getLogRx(DECODE));
+            message.setRegs(mesHash.getRegs());
             message.setTxDecode(mesHash.getLogRx(DECODE));
             message.setTx(mesHash.getTx());
             message.setStatus(mesHash.getStatus());

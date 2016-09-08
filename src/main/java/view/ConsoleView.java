@@ -11,6 +11,12 @@ import java.io.InputStreamReader;
 public class ConsoleView implements View {
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     private logView logView;
+    static int a;
+
+
+    private void help(){
+
+    }
 
     @Override
     public void print(String text) {
@@ -47,7 +53,7 @@ public class ConsoleView implements View {
 
     @Override
     public void dbChanged(int id, RegTypes regTypes) {
-
+        /*NOP*/
     }
 
     @Override

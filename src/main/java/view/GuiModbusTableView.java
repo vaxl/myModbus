@@ -4,22 +4,21 @@ import base.Database;
 import base.RegTypes;
 import controller.GuiController;
 import database.Db;
-import database.Entity.BaseReg;
-import database.Entity.Registr;
-import factory.FactorySetup;
+import database.Entity.*;
+
 import javax.swing.table.AbstractTableModel;
 
 public class GuiModbusTableView extends AbstractTableModel  {
     private final static int ROWNAME =0;
     private final static int ROWREG =1;
     private final static int ROWVAL =2;
-    private BaseReg baseReg;
+    private TableRegs tableRegs;
     private Database db = Db.getInstance();
     private GuiController controller;
     private final Class[] columnClass;
 
     GuiModbusTableView(GuiController controller, RegTypes type,int id) {
-        baseReg = new BaseReg(id,type);
+        tableRegs = new TableRegs(id,type);
         this.controller = controller;
         columnClass = new Class[] {
                 String.class,Integer.class,Integer.class
@@ -41,7 +40,7 @@ public class GuiModbusTableView extends AbstractTableModel  {
     }
     @Override
     public int getRowCount() {
-        return db.sizeTable(baseReg);
+        return db.sizeTable(tableRegs);
     }
     @Override
     public int getColumnCount() {
@@ -49,7 +48,7 @@ public class GuiModbusTableView extends AbstractTableModel  {
     }
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Registr reg = (Registr) db.readAll(baseReg).toArray()[rowIndex];
+        Registr reg = (Registr) db.readAll(tableRegs).toArray()[rowIndex];
         if (ROWREG == columnIndex) return reg.getReg();
         if (ROWVAL == columnIndex) return reg.getValue();
         if (ROWNAME == columnIndex) return reg.getName();
@@ -62,13 +61,13 @@ public class GuiModbusTableView extends AbstractTableModel  {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        Registr key = (Registr) db.readAll(baseReg).toArray()[rowIndex];
+        Registr key = (Registr) db.readAll(tableRegs).toArray()[rowIndex];
         if (ROWVAL == columnIndex){
 
             key.setValue((int) aValue);
             db.update(key);
             controller.clearCach();
-            if (baseReg.getType().ordinal()>6 & baseReg.getType().ordinal()<10 ) controller.event(key);
+            if (tableRegs.getType().ordinal()>6 & tableRegs.getType().ordinal()<10 ) controller.event(new Registrs(key,1));
         }
         if (ROWNAME == columnIndex) {
             key.setName((String) aValue);

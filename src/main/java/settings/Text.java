@@ -1,6 +1,19 @@
 package settings;
 
+import factory.FactorySetup;
+
 public class Text {
+     private static Text text;
+
+     public Text(){}
+
+     public static Text getInstance(){
+          if (text == null) {
+               text = (Text) FactorySetup.getClazz("text.xml");
+          }
+          return text;
+     }
+
      public String PORTOPEN = "PORTOPEN";
      public String PORTCLOSE = "PORTCLOSE";
      public String CONNECTED = "CONNECTED";

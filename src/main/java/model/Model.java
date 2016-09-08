@@ -4,8 +4,10 @@ import base.*;
 import database.CachMap;
 import database.Db;
 import database.Entity.Registr;
+import database.Entity.Registrs;
 import factory.FactorySetup;
 import helpers.ReflectionHelper;
+import portWork.AbstractServer;
 import settings.Setup;
 import settings.Text;
 
@@ -13,7 +15,7 @@ public class Model {
     private Setup setup;
     private View view;
     private Text text;
-    private Connection connection;
+    private AbstractServer connection;
     private final String DIRCON = "portWork.";
 
     public Model() {
@@ -21,20 +23,16 @@ public class Model {
     }
 
     public void start(){
-        connection = (Connection) ReflectionHelper.createInstance(DIRCON + setup.connection);
+        connection = (AbstractServer) ReflectionHelper.createInstance(DIRCON + setup.connection);
         if (connection!=null) {
                 new Thread(connection,"Connection").start();
         }else view.print(text.NOCONNECT);
     }
 
     public void init(){
-        setup = (Setup) FactorySetup.getClazz("setup.xml");
+        setup = Setup.getInstance();
         view = (View) FactorySetup.getClazz("View");
-        text = (Text) FactorySetup.getClazz("text.xml");
-    }
-    public void refreshConf(){
-        FactorySetup.readXml("setup.xml");
-        setup = (Setup) FactorySetup.getClazz("setup.xml");
+        text = Text.getInstance();
     }
 
     public void write(byte[] message) {
@@ -55,7 +53,7 @@ public class Model {
         CachMap.getInstance().clearCach();
     }
 
-    public void event(Registr reg) {
+    public void event(Registrs reg) {
         if(connection==null) return;
         connection.event(reg);
     }

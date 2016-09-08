@@ -2,9 +2,10 @@ package message.parsers;
 
 import base.*;
 import database.Db;
-import database.Entity.BaseReg;
+import database.Entity.DiagRegistrs;
+import database.Entity.Registrs;
+import database.Entity.TableRegs;
 import database.Entity.Registr;
-import factory.FactorySetup;
 import message.Message;
 import settings.*;
 import java.time.LocalDateTime;
@@ -20,8 +21,8 @@ public class IEC104ClientParser implements ParseMessage {
     private Message message;
     private int countNs=0;
     private int countNr=0;
-    private Text text = (Text) FactorySetup.getClazz("text.xml");
-    private Setup setup = (Setup) FactorySetup.getClazz("setup.xml");
+    private Text text = Text.getInstance();
+    private Setup setup = Setup.getInstance();
     private Database db = Db.getInstance();
     private HashMap<String,Message> cash = new HashMap<>();
 
@@ -43,17 +44,17 @@ public class IEC104ClientParser implements ParseMessage {
     }
 
     private void sendMesage() {
-        int key = twoByte2Int(rx[1],rx[2]);
-        RegTypes type = RegTypes.values()[rx[0]];
-        int id = rx[3];
-        BaseReg baseReg = new BaseReg(id,type);
+        Registrs regs = message.getRegs();
+        int key = regs.getReg();
+        RegTypes type =regs.getType();
+        int id = regs.getId();
         if (getFunction(type,false)==0) {
             message.setStatus(MessageStatus.NOANSWER);
-            message.setRxDecode(text.ERRFUNC);
+            message.setRegs(new DiagRegistrs(text.ERRFUNC));
             return;
         }
         List<Byte> arr = new ArrayList<>(32);
-            byte [] val = ParserHelper.regsToByteData(key,1,db.readAll(baseReg));
+            byte [] val = ParserHelper.regsToByteData(key,1,db.readAll(regs));
             if (val==null) return;
             headerGen(arr);
             arr.add(TYPE, getFunction(type,true));
@@ -62,8 +63,8 @@ public class IEC104ClientParser implements ParseMessage {
             arr.add(ADR,SINGLE);
             arr.add(ASDUL,int2ByteLo(setup.id));
             arr.add(ASDUH,int2ByteHi(setup.id));
-            arr.add(REGLO,rx[2]);
-            arr.add(REGHI,rx[1]);
+            arr.add(REGLO,int2ByteLo(key));
+            arr.add(REGHI,int2ByteHi(key));
             arr.add(REG0, ZERO);
             for (int i = val.length-1,j=VAL; i >=0 ; i--,j++)
                 arr.add(j,val[i]);
@@ -82,15 +83,15 @@ public class IEC104ClientParser implements ParseMessage {
             message.setTx(service.getTx());
             message.setStatus(service.getStatus());
             message.setTxDecode(service.getLogRx(DECODE));
-            message.setRxDecode(service.getLogRx(DECODE));
+            message.setRegs(service.getRegs());
         }
         else if (message.getRx()[2]==1) {
             message.setStatus(MessageStatus.NOANSWER);
-            message.setRxDecode(text.CMDACKNOL);
+            message.setRegs(new DiagRegistrs(text.CMDACKNOL));
         }
         else {
             message.setStatus(MessageStatus.NOANSWER);
-            message.setRxDecode(text.ERRFUNC);
+            message.setRegs(service.getRegs());
         }
     }
     private void parseInformM(){
@@ -106,7 +107,7 @@ public class IEC104ClientParser implements ParseMessage {
                 int id = twoByte2Int(rx[ASDUH],rx[ASDUL]);
 
                 for(RegTypes type : RegTypes.values()) {
-                    byte[] data = getData(new BaseReg(id,type));
+                    byte[] data = getData(new TableRegs(id,type));
                     if (data != null) {
                         tx = Arrays.copyOf(tx,tx.length+data.length);
                         System.arraycopy(data, 0, tx, curArr, data.length);
@@ -119,17 +120,17 @@ public class IEC104ClientParser implements ParseMessage {
 
                 message.setTx(tx);
                 message.setStatus(MessageStatus.OK);
-                message.setRxDecode(text.GI);
+                message.setRegs(new DiagRegistrs(text.GI));
                 message.setTxDecode(text.CMDACKNOL);
                 break;
             }
             default:message.setStatus(MessageStatus.NOANSWER);
         }
     }
-    private byte[] getData(BaseReg baseReg) {
-        RegTypes type = baseReg.getType();
+    private byte[] getData(TableRegs tableRegs) {
+        RegTypes type = tableRegs.getType();
         if (getFunction(type,false)==0) return null;
-        byte [] data = convertToBytes(db.readAll(baseReg));
+        byte [] data = convertToBytes(db.readAll(tableRegs));
         if (data==null) return null;
         int k=1;
         if (type == SINGLEBIT) k=4;
@@ -221,7 +222,7 @@ public class IEC104ClientParser implements ParseMessage {
         Message m1 = new Message(req);
         m1.setTx(answ);
         m1.setStatus(MessageStatus.START);
-        m1.setRxDecode(text.STARTACT);
+        m1.setRegs(new DiagRegistrs(text.STARTACT));
         m1.setTxDecode(text.CMDACKNOL);
         cash.put(m1.getLogRx(ORIGINAL),m1);
 
@@ -230,7 +231,7 @@ public class IEC104ClientParser implements ParseMessage {
         Message m2 = new Message(req2);
         m2.setTx(answ2);
         m2.setStatus(MessageStatus.OK);
-        m2.setRxDecode(text.TESTACT);
+        m2.setRegs(new DiagRegistrs(text.TESTACT));
         m2.setTxDecode(text.CMDACKNOL);
         cash.put(m2.getLogRx(ORIGINAL),m2);
     }

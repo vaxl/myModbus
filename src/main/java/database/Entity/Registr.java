@@ -2,20 +2,16 @@ package database.Entity;
 
 import base.RegTypes;
 
-public class Registr extends BaseReg {
+public class Registr extends TableRegs implements Comparable<Registr>{
     private String name;
     private int value;
-    private int reg;
-    private RegTypes type;
-    private int id;
+    final private int reg;
 
     public Registr(int id,int reg, RegTypes type) {
         super(id,type);
         this.reg = reg;
-        this.type = type;
         this.value = 0;
         this.name = type.name()+ " " +reg;
-        this.id =id;
     }
 
     public Registr(int id,int reg, RegTypes type, int value,String name) {
@@ -23,16 +19,12 @@ public class Registr extends BaseReg {
         this.name = name;
         this.value = value;
         this.reg = reg;
-        this.type = type;
-        this.id =id;
     }
 
     public Registr(int id,int reg, RegTypes type,int value) {
         super(id,type);
         this.value = value;
         this.reg = reg;
-        this.type = type;
-        this.id=id;
         this.name = type.name()+ " " +reg;
     }
 
@@ -56,23 +48,24 @@ public class Registr extends BaseReg {
         return reg;
     }
 
-    public void setReg(int reg) {
-        this.reg = reg;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Registr registr = (Registr) o;
+
+        return reg == registr.reg;
+
     }
 
-    public RegTypes getType() {
-        return type;
+    @Override
+    public int hashCode() {
+        return reg;
     }
 
-    public void setType(RegTypes type) {
-        this.type = type;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    @Override
+    public int compareTo(Registr o) {
+        return reg-o.getReg();
     }
 }

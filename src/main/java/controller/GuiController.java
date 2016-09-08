@@ -2,6 +2,7 @@ package controller;
 
 import base.View;
 import database.Entity.Registr;
+import database.Entity.Registrs;
 import factory.FactorySetup;
 import helpers.LogicHelper;
 import model.Model;
@@ -21,8 +22,8 @@ public class GuiController {
     public static void main(String[] args) {
         GuiController controller = new GuiController();
         controller.model.init();
-        controller.text = (Text) FactorySetup.getClazz("text.xml");
-        controller.setup = (Setup) FactorySetup.getClazz("setup.xml");
+        controller.text = Text.getInstance();
+        controller.setup = Setup.getInstance();
         controller.view.init();
     }
 
@@ -94,7 +95,7 @@ public class GuiController {
         }
     }
 
-    public void event(Registr reg) {
+    public void event(Registrs reg) {
          model.event(reg);
     }
 }

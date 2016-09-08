@@ -3,9 +3,8 @@ package view;
 import base.*;
 import controller.GuiController;
 import database.Db;
-import database.Entity.BaseReg;
+import database.Entity.TableRegs;
 import database.Entity.Registr;
-import factory.FactorySetup;
 import message.Message;
 import settings.*;
 import javax.swing.*;
@@ -18,15 +17,15 @@ public class GuiView implements View {
     private static final String RESOURCES = "xls/";
     private Database db;
     private String dbType="none";
-    private Setup setup = (Setup) FactorySetup.getClazz("setup.xml"); ;
-    private Text text = (Text) FactorySetup.getClazz("text.xml");
+    private Setup setup = Setup.getInstance();
+    private Text text = Text.getInstance();
     private logView logView= View.logView.valueOf(setup.logView);
     private GuiController controller;
     private Map<Integer,Map<RegTypes,GuiModbusTableView>> tabModels = new HashMap<>();
     private Map<Integer, JTabbedPane> tabsInMain = new HashMap<>();
     private JFrame frame = new JFrame(text.GUINAME);
-    private JTextField cmdField = new JTextField(60);
-    private JTextArea messages = new JTextArea(10,60);
+    private JTextField cmdField = new JTextField(40);
+    private JTextArea messages = new JTextArea(10,40);
     private JTabbedPane mainTab = new JTabbedPane();
 
     public GuiView(GuiController controller) {
@@ -244,7 +243,7 @@ public class GuiView implements View {
             boolean newTab = !tabModels.containsKey(id);
             tabModels.putIfAbsent(id, new HashMap<>());
             for (RegTypes r : RegTypes.values()) {
-                if (db.sizeTable(new BaseReg(id,r)) == 0) continue;
+                if (db.sizeTable(new TableRegs(id,r)) == 0) continue;
                 if (tabModels.get(id).get(r)==null) {
                     GuiModbusTableView model = new GuiModbusTableView(controller, r, id);
                     tabModels.get(id).put(r, model);
